@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatGateway } from './chat/chat.gateway';
+import { PlayersModule } from './players/players.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ChatGateway } from './chat/chat.gateway';
       entities: [__dirname + '/**/entities/*.entity{.ts}'],
       synchronize: false,
       autoLoadEntities: true
-    })
+    }),
+    PlayersModule
   ],
   controllers: [],
   providers: [ChatGateway],
