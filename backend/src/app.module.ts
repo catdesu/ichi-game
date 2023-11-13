@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatGateway } from './chat/chat.gateway';
 import { PlayersModule } from './players/players.module';
+import { GameRoomGateway } from './game-room/game-room.gateway';
+import { GameRoomModule } from './game-room/game-room.module';
 
 @Module({
   imports: [
@@ -20,7 +22,8 @@ import { PlayersModule } from './players/players.module';
       synchronize: false,
       autoLoadEntities: true
     }),
-    PlayersModule
+    PlayersModule,
+    GameRoomModule
   ],
   controllers: [],
   providers: [ChatGateway],
