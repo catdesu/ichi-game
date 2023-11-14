@@ -1,6 +1,8 @@
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameRoomService } from './game-room.service';
+import { SessionsInterface } from './interfaces/session.interface';
+import { playersInterface } from './interfaces/players.interface';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -9,43 +11,53 @@ import { GameRoomService } from './game-room.service';
 export class GameRoomGateway {
   @WebSocketServer()
   server: Server;
-  private readonly sessions = new Map<string, Socket[]>();
+  private readonly sessions = new Map<string, SessionsInterface>();
 
   constructor(private readonly gameRoomService: GameRoomService) {}
 
   handleConnection(client: Socket): void {
     // Handle connection logic
+    console.log(client.id, 'is connected');
   }
 
   handleDisconnect(client: Socket): void {
-    // Handle disconnection logic
+    console.log(client.id, 'is disconnected');
   }
 
   @SubscribeMessage('create')
   async handleCreateGameRoom(client: Socket, data: { playerId: number }): Promise<void> {
     const { playerId } = data;
-    const code = await this.gameRoomService.createGameRoom(playerId);
+    const {gameRoom, player} = await this.gameRoomService.createGameRoom(playerId);
+    const sessionPlayer: playersInterface = { id: client.id, username: player.username };
     
-    // Notify the client that the game room was created
-    client.emit('create-success', 'Game room created');
-    
-    // Add the client socket to the roomSockets map
-    if (!this.sessions.has(code)) {
-      this.sessions.set(code, []);
+    if (!this.sessions.has(gameRoom.code)) {
+      this.sessions.set(gameRoom.code, { status: gameRoom.status, players: [sessionPlayer] });
+
+      client.emit('create-response', { message: 'Game room created', code: gameRoom.code });
     }
-    this.sessions.get(code).push(client);
   }
 
   @SubscribeMessage('join')
-  handleJoinGameRoom(@MessageBody() data, client: Socket): void {
+  async handleJoinGameRoom(client: Socket, data: { code: string, playerId: number }): Promise<void> {
     const { code, playerId } = data;
-    this.gameRoomService.joinGameRoom(code, playerId);
-
-    client.emit('join-success', 'Game room joined');
+    const player = await this.gameRoomService.joinGameRoom(code, playerId);
 
     if (!this.sessions.has(code)) {
-      this.sessions.set(code, []);
+      
     }
-    this.sessions.get(code).push(client);
+
+    const sessionPlayer: playersInterface = { id: client.id, username: player.username };
+
+    this.sessions.get(code).players.push(sessionPlayer);
+
+    const session = this.sessions.get(code);
+
+    if (session) {
+      session.players.forEach((player) => {
+        client.to(player.id).emit('join-response', `${sessionPlayer.username} joined`);
+      });
+    }
+
+    client.emit('join-response', `You joined the game room`);
   }
 }

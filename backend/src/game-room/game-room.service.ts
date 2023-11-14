@@ -18,7 +18,7 @@ export class GameRoomService {
     private readonly playersService: PlayersService
   ) {}
 
-  async createGameRoom(playerId: number): Promise<string> {
+  async createGameRoom(playerId: number): Promise<{gameRoom: GameRoom, player: Player}> {
     const code = await this.generateRandomUniqueCode();
     this.gameRooms.set(code, [playerId]);
 
@@ -33,12 +33,12 @@ export class GameRoomService {
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
     updatePlayerDto.fk_game_room_id = gameRoom.id;
 
-    this.playersService.update(playerId, updatePlayerDto);
+    const player = await this.playersService.update(playerId, updatePlayerDto);
 
-    return code;
+    return {gameRoom, player};
   }
 
-  async joinGameRoom(code: string, playerId: number): Promise<void> {
+  async joinGameRoom(code: string, playerId: number): Promise<Player> {
     const gameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
       relations: ['players']
@@ -51,7 +51,7 @@ export class GameRoomService {
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
     updatePlayerDto.fk_game_room_id = gameRoom.id;
 
-    this.playersService.update(playerId, updatePlayerDto);
+    return await this.playersService.update(playerId, updatePlayerDto);
   }
 
   async getPlayersInGameRoom(code: string): Promise<Player[]> {
@@ -70,8 +70,6 @@ export class GameRoomService {
         code: code,
       },
     });
-
-    console.log('game-room:', gameRoomExist);
 
     if (gameRoomExist.length > 0) {
       this.generateRandomUniqueCode();
