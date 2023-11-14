@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { GameRoomStatus } from "../enums/game-room-status.enum";
+import { Player } from "src/players/entities/player.entity";
 
 @Entity()
 export class GameRoom {
@@ -18,4 +19,7 @@ export class GameRoom {
 
   @Column()
   max_players: number;
+
+  @OneToMany(() => Player, (player) => player.gameRoom)
+  players: Player[];
 }
