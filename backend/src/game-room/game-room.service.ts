@@ -44,10 +44,6 @@ export class GameRoomService {
       relations: ['players']
     });
 
-    if (!gameRoom) throw new Error('Game room does not exist');
-
-    if (gameRoom.players.length === ROOM_MAX_PLAYERS) throw new Error('Game room is already full');
-
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
     updatePlayerDto.fk_game_room_id = gameRoom.id;
 
