@@ -3,8 +3,16 @@
 @import "node_modules/primeflex/primeflex.css";
 @import "node_modules/ngx-toastr/toastr.css";
 
+html {
+  height: 100%;
+}
+
 body {
-  
+  height: 100%;
+  margin: 0;
+  background-image: linear-gradient(to bottom, #bb8f90, #b58893, #ab8296, #9f7e99, #8f7a9c, #897ca1, #837ea6, #7b81aa, #7f89b4, #8391be, #8799c9, #8aa1d3);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .toast-top-right {

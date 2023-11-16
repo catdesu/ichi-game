@@ -11,11 +11,13 @@ import {ButtonModule} from "primeng/button";
 import { CardModule } from "primeng/card";
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
+import { GameRoomComponent } from './components/game-room/game-room.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ChooseNicknameComponent
+    ChooseNicknameComponent,
+    GameRoomComponent
   ],
   imports: [
     BrowserModule,

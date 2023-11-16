@@ -1,7 +1,10 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { PlayersService } from 'src/app/services/players.service';
+import { AuthPlayerInterface } from 'src/app/interfaces/auth.player.interface';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-choose-nickname',
@@ -20,7 +23,9 @@ export class ChooseNicknameComponent {
 
   constructor(
     private readonly playerService: PlayersService,
-    private readonly toastrService: ToastrService
+    private readonly authService: AuthService,
+    private readonly toastrService: ToastrService,
+    private readonly router: Router
   ) {}
 
   onSubmit() {
@@ -36,7 +41,12 @@ export class ChooseNicknameComponent {
         this.toastrService.error('Nickname error');
       },
       next: (data) => {
+        const player: AuthPlayerInterface = {id: data.id, nickname: data.username};
+        this.authService.authenticate(player);
         this.toastrService.success(`Connected as ${nickname}`);
+      },
+      complete: () => {
+        this.router.navigate(['game-room']);
       }
     });
   }
