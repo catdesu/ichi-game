@@ -8,13 +8,16 @@ import { AuthService } from './auth.service';
 })
 export class WebsocketService {
   private serverUrl: string = `${environment.apiUrl}game-room`;
-  private socket: Socket = io('http://localhost:3000');
+  private socket?: Socket;
 
   constructor(private readonly authService: AuthService) { }
 
   connect(): void {
     console.log(this.serverUrl);
-    this.socket = io(this.serverUrl);
+    this.socket = io('http://localhost:3000/game-room', {
+      withCredentials: true,
+      transports: ['websocket'],
+    });
 
     this.socket.on('connect', () => {
       console.log('connected');

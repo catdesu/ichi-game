@@ -13,6 +13,7 @@ import { ROOM_MAX_PLAYERS } from 'src/constants';
 
 @WebSocketGateway({
   namespace: 'game-room',
+  cors: 'localhost:4200',
   transports: ['websocket'],
 })
 export class GameRoomGateway {
