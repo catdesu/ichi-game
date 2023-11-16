@@ -16,7 +16,7 @@ export class AuthService {
     localStorage.removeItem('ichi-auth');
   }
 
-  isauthenticated(): boolean {
+  isAuthenticated(): boolean {
     const data = localStorage.getItem('ichi-auth');
 
     if (data !== null) {

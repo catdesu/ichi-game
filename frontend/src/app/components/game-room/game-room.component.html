@@ -1,1 +1,33 @@
-<p>game-room works!</p>
+<div class="card" class="h-full w-full flex flex-column align-items-center">
+    <img [style]="{'width': '18rem'}" src="../../../assets/images/logo.png" alt="ICHI logo">
+    <p-card [style]="{'width': '25rem', 'margin-bottom': '2em'}">
+        <div>
+            <h3 class="mb-0">Create a game room</h3>
+            <hr class="mt-0">
+            <p-button type="p-button" styleClass="w-full mt-4 mb-4" label="Create"></p-button>
+        </div>
+        <div>
+            <h3 class="mb-0">Join a game room</h3>
+            <hr class="mt-0">
+            <form [formGroup]="joinGameForm" (ngSubmit)="joinGame()" class="w-full">
+                <div class="formgrid grid mt-4" [ngClass]="{'ng-invalid': joinGameForm.controls['code'].invalid && (joinGameForm.controls['code'].dirty || joinGameForm.controls['code'].touched), 'ng-dirty': joinGameForm.controls['code'].dirty}">
+                    <div class="field col w-full">
+                        <span class="p-float-label">
+                            <input type="text" id="code" maxlength="6" formControlName="code" pInputText>
+                            <label for="code">Your code is...</label>
+                        </span>
+                        <div *ngIf="joinGameForm.controls['code'].invalid && (joinGameForm.controls['code'].dirty || joinGameForm.controls['code'].touched)"
+                            class="alert">
+                            <small *ngIf="joinGameForm.controls['code'].errors?.['required']" class="text-red-600 pl-1">
+                                Please enter a valid code
+                            </small>
+                        </div>
+                    </div>
+                    <div class="field col">
+                        <p-button class="w-full" type="submit" label="Join"></p-button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </p-card>
+</div>
