@@ -7,7 +7,7 @@ import { AuthPlayerInterface } from '../interfaces/auth.player.interface';
 export class AuthService {
 
   constructor() { }
-
+  // TODO: adapt to the register and login from nest
   authenticate(data: AuthPlayerInterface) {
     localStorage.setItem('ichi-auth', JSON.stringify(data));
   }

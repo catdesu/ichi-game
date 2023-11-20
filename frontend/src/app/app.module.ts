@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ChooseNicknameComponent } from './components/choose-nickname/choose-nickname.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { HttpClientModule } from "@angular/common/http";
@@ -12,12 +11,15 @@ import { CardModule } from "primeng/card";
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { GameRoomComponent } from './components/game-room/game-room.component';
+import { LoginComponent } from './components/login/login.component';
+import { RegisterComponent } from './components/register/register.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ChooseNicknameComponent,
-    GameRoomComponent
+    GameRoomComponent,
+    LoginComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,

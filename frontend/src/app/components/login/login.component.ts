@@ -7,17 +7,21 @@ import { AuthPlayerInterface } from 'src/app/interfaces/auth.player.interface';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
-  selector: 'app-choose-nickname',
-  templateUrl: './choose-nickname.component.html',
-  styleUrls: ['./choose-nickname.component.css'],
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
 })
-export class ChooseNicknameComponent {
+export class LoginComponent {
   playerForm: FormGroup = new FormGroup({
-    nickname: new FormControl(null, [
+    username: new FormControl(null, [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(30),
       Validators.pattern('^[0-9a-zA-Z_-]+$'),
+    ]),
+    password: new FormControl(null, [
+      Validators.required,
+      Validators.minLength(8),
     ]),
   });
 
@@ -30,24 +34,30 @@ export class ChooseNicknameComponent {
 
   onSubmit() {
     if (this.playerForm.invalid) {
-      this.playerForm.get('nickname')?.markAsDirty();
+      this.playerForm.get('username')?.markAsDirty();
+      this.playerForm.get('password')?.markAsDirty();
       return;
     }
 
-    let nickname = this.playerForm.get('nickname')?.value;
+    // TODO: adapt login with an interface + rename
+    let username = this.playerForm.get('username')?.value;
+    let password = this.playerForm.get('password')?.value;
 
-    this.playerService.create(nickname).subscribe({
+    this.playerService.create(username).subscribe({
       error: (data) => {
-        this.toastrService.error('Nickname error');
+        this.toastrService.error('username error');
       },
       next: (data) => {
-        const player: AuthPlayerInterface = {id: data.id, nickname: data.username};
+        const player: AuthPlayerInterface = {
+          id: data.id,
+          username: data.username,
+        };
         this.authService.authenticate(player);
-        this.toastrService.success(`Connected as ${nickname}`);
+        this.toastrService.success(`Connected as ${username}`);
       },
       complete: () => {
         this.router.navigate(['game-room']);
-      }
+      },
     });
   }
 }
