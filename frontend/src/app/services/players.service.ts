@@ -11,6 +11,6 @@ export class PlayersService {
   constructor(private readonly http: HttpClient) { }
 
   create(username: string): Observable<any> {
-    return this.http.post(`${environment.apiUrl}players`, { username });
+    return this.http.post(`${environment.apiUrl}/players`, { username });
   }
 }

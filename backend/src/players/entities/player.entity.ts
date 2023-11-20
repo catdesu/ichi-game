@@ -1,3 +1,4 @@
+import { Exclude } from "class-transformer";
 import { GameRoom } from "src/game-room/entities/game-room.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -15,6 +16,10 @@ export class Player {
 
   @Column({ length: 30 })
   username: string;
+
+  @Column({ length: 255 })
+  @Exclude()
+  password: string;
 
   @Column({ nullable: true, type: 'json' })
   hand_cards: Record<string, any>;

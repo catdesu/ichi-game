@@ -7,14 +7,14 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class WebsocketService {
-  private serverUrl: string = `${environment.apiUrl}game-room`;
+  private serverUrl: string = `${environment.apiUrl}/game-room`;
   private socket?: Socket;
 
   constructor(private readonly authService: AuthService) { }
 
   connect(): void {
     console.log(this.serverUrl);
-    this.socket = io('http://localhost:3000/game-room', {
+    this.socket = io(this.serverUrl, {
       withCredentials: true,
       transports: ['websocket'],
     });
