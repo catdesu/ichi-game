@@ -1,10 +1,9 @@
 <div class="card" class="h-full w-full flex flex-column align-items-center">
-    <img [style]="{'width': '18rem'}" src="../../../assets/images/logo.png" alt="ICHI logo">
     <p-card [style]="{'width': '25rem', 'margin-bottom': '2em'}">
         <div>
             <h3 class="mb-0">Create a game room</h3>
             <hr class="mt-0">
-            <p-button type="p-button" styleClass="w-full mt-4 mb-4" label="Create"></p-button>
+            <p-button type="p-button" styleClass="w-full" label="Create"></p-button>
         </div>
         <div>
             <h3 class="mb-0">Join a game room</h3>
@@ -14,7 +13,7 @@
                     <div class="field col w-full">
                         <span class="p-float-label">
                             <input type="text" id="code" maxlength="6" formControlName="code" pInputText>
-                            <label for="code">Your code is...</label>
+                            <label for="code">Enter code</label>
                         </span>
                         <div *ngIf="joinGameForm.controls['code'].invalid && (joinGameForm.controls['code'].dirty || joinGameForm.controls['code'].touched)"
                             class="alert">
@@ -24,7 +23,7 @@
                         </div>
                     </div>
                     <div class="field col">
-                        <p-button class="w-full" type="submit" label="Join"></p-button>
+                        <p-button [style]="{'width': '100%'}" type="submit" label="Join"></p-button>
                     </div>
                 </div>
             </form>

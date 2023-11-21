@@ -16,7 +16,8 @@ export class WsJwtGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const client = context.switchToWs().getClient();
-    const token = client.handshake.headers.authorization?.split(' ')[1];
+    const token = client.handshake.auth.token;
+    console.log('client', client);
     console.log('token', token);
     if (!token) {
       throw new UnauthorizedException();

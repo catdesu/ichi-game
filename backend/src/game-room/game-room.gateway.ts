@@ -10,6 +10,8 @@ import { SessionsInterface } from './interfaces/session.interface';
 import { playersInterface } from './interfaces/players.interface';
 import { GameRoomStatus } from './enums/game-room-status.enum';
 import { ROOM_MAX_PLAYERS } from 'src/constants';
+import { UseGuards } from '@nestjs/common';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -23,6 +25,7 @@ export class GameRoomGateway {
 
   constructor(private readonly gameRoomService: GameRoomService) {}
 
+  @UseGuards(WsJwtGuard)
   handleConnection(client: Socket): void {
     console.log(client.id, 'is connected');
   }
@@ -31,6 +34,7 @@ export class GameRoomGateway {
     console.log(client.id, 'is disconnected');
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('create')
   async handleCreateGameRoom(
     client: Socket,
@@ -57,6 +61,7 @@ export class GameRoomGateway {
     }
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('join')
   async handleJoinGameRoom(
     client: Socket,

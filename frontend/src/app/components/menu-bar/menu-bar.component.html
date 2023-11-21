@@ -1,0 +1,13 @@
+<div class="card mb-5">
+    <p-menubar>
+        <ng-template pTemplate="start">
+            <img src="../../../assets/images/logo.png" height="40" class="mr-2" />
+        </ng-template>
+        <ng-template pTemplate="end">
+            <div class="flex align-items-center" *ngIf="isAuthenticated">
+                <p-button class="mr-3" (onClick)="logout()" type="p-button" label="Logout"></p-button>
+                <span class="text-xl text-medium">{{ username }}</span>
+            </div>
+        </ng-template>
+    </p-menubar>
+</div>

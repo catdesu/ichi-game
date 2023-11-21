@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthPlayerInterface } from '../interfaces/auth.player.interface';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment.development';
 import { SessionStorageService } from './session-storage.service';
@@ -10,6 +10,8 @@ import { LoginDto } from '../components/login/dto/login.dto';
   providedIn: 'root',
 })
 export class AuthService {
+  public isUserLoggedIn: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
   constructor(
     private readonly http: HttpClient,
     private readonly sessionStorageService: SessionStorageService
@@ -20,10 +22,12 @@ export class AuthService {
   }
 
   authenticate(token: string) {
+    this.isUserLoggedIn.next(true);
     this.sessionStorageService.set('ichi-auth-token', token);
   }
 
   unauthenticate() {
+    this.isUserLoggedIn.next(false);
     this.sessionStorageService.remove('ichi-auth-token');
   }
 

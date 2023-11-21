@@ -22,5 +22,7 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.connect();
   }
 
+  createGame() {}
+
   joinGame() {}
 }

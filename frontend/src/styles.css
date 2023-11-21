@@ -3,10 +3,6 @@
 @import "node_modules/primeflex/primeflex.css";
 @import "node_modules/ngx-toastr/toastr.css";
 
-html {
-  height: 100%;
-}
-
 body {
   height: 100%;
   margin: 0;
@@ -21,4 +17,23 @@ body {
 
 .p-card-content {
   padding: 0px;
+}
+
+.hr-sect {
+  display: flex;
+  flex-basis: 100%;
+  align-items: center;
+  color: black;
+  margin: 8px 0px;
+}
+
+.hr-sect:before,
+.hr-sect:after {
+  content: "";
+  flex-grow: 1;
+  background: rgba(0, 0, 0, 0.35);
+  height: 1px;
+  font-size: 0px;
+  line-height: 0px;
+  margin: 0px 8px;
 }
