@@ -1,1 +1,169 @@
-<p>register works!</p>
+<div class="card" class="h-full w-full flex flex-column align-items-center">
+    <img
+      [style]="{ width: '18rem' }"
+      src="../../../assets/images/logo.png"
+      alt="ICHI logo"
+    />
+    <p-card [style]="{ width: '25rem' }">
+      <h2 class="text-center">Register Here</h2>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="w-full">
+        <div
+          class="field"
+          [ngClass]="{ 'ng-invalid': registerForm.controls['username'].invalid }"
+        >
+          <span class="p-float-label">
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              pInputText
+              [style]="{ width: '100%' }"
+              [class.valid]="
+                registerForm.get('username')?.valid &&
+                (registerForm.get('username')?.dirty ||
+                  registerForm.get('username')?.touched)
+              "
+              [class.invalid]="
+                registerForm.get('username')?.invalid &&
+                (registerForm.get('username')?.dirty ||
+                  registerForm.get('username')?.touched)
+              "
+            />
+            <label for="username">Username</label>
+          </span>
+          <div
+            *ngIf="
+              registerForm.get('username')?.invalid &&
+              registerForm.get('username')?.errors &&
+              (registerForm.get('username')?.dirty ||
+                registerForm.get('username')?.touched)
+            "
+          >
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('username')?.hasError('required')"
+            >
+              This field is required.
+            </small>
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('username')?.hasError('minlength')"
+            >
+              The minimum length for this field is 3.
+            </small>
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('username')?.hasError('maxlength')"
+            >
+              The maximum length for this field is 30.
+            </small>
+          </div>
+        </div>
+        <div
+          class="field pt-2"
+          [ngClass]="{ 'ng-invalid': registerForm.controls['password'].invalid }"
+        >
+          <span class="p-float-label">
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              pInputText
+              [style]="{ width: '100%' }"
+              [class.valid]="
+                registerForm.get('password')?.valid &&
+                (registerForm.get('password')?.dirty ||
+                  registerForm.get('password')?.touched)
+              "
+              [class.invalid]="
+                registerForm.get('password')?.invalid &&
+                (registerForm.get('password')?.dirty ||
+                  registerForm.get('password')?.touched)
+              "
+            />
+            <label for="password">Password</label>
+          </span>
+          <div
+            *ngIf="
+              registerForm.get('password')?.invalid &&
+              registerForm.get('password')?.errors &&
+              (registerForm.get('password')?.dirty ||
+                registerForm.get('password')?.touched)
+            "
+          >
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('password')?.hasError('required')"
+            >
+              This field is required.
+            </small>
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('password')?.hasError('minlength')"
+            >
+              The minimum length for this field is 8.
+            </small>
+          </div>
+        </div>
+        <div
+          class="field pt-2"
+          [ngClass]="{ 'ng-invalid': registerForm.controls['password'].invalid }"
+        >
+          <span class="p-float-label">
+            <input
+              type="password"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              pInputText
+              [style]="{ width: '100%' }"
+              [class.valid]="
+                registerForm.get('confirmPassword')?.valid &&
+                (registerForm.get('confirmPassword')?.dirty ||
+                  registerForm.get('password')?.touched)
+              "
+              [class.invalid]="
+                registerForm.get('confirmPsername')?.invalid &&
+                (registerForm.get('confirmPassword')?.dirty ||
+                  registerForm.get('confirmPassword')?.touched)
+              "
+            />
+            <label for="confirmPassword">Confirm Password</label>
+          </span>
+          <div
+            *ngIf="
+              registerForm.get('confirmPassword')?.invalid &&
+              registerForm.get('confirmPassword')?.errors &&
+              (registerForm.get('confirmPassword')?.dirty ||
+                registerForm.get('confirmPassword')?.touched)
+            "
+          >
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('confirmPassword')?.hasError('required')"
+            >
+              This field is required.
+            </small>
+            <small
+              class="p-error block"
+              *ngIf="registerForm.get('confirmPassword')?.hasError('minlength')"
+            >
+              The minimum length for this field is 8.
+            </small>
+            <small
+              class="p-error block"
+              *ngIf="registerForm?.hasError('passwordmatch')"
+            >
+              Confirm password does not match with password.
+            </small>
+          </div>
+        </div>
+        <p-button
+          type="submit"
+          [disabled]="registerForm.invalid"
+          styleClass="w-full mt-2"
+          label="Enter"
+        ></p-button>
+      </form>
+    </p-card>
+  </div>
+  

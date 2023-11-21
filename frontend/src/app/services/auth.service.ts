@@ -1,33 +1,35 @@
 import { Injectable } from '@angular/core';
 import { AuthPlayerInterface } from '../interfaces/auth.player.interface';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment.development';
+import { SessionStorageService } from './session-storage.service';
+import { LoginDto } from '../components/login/dto/login.dto';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly sessionStorageService: SessionStorageService
+  ) {}
 
-  constructor() { }
-  // TODO: adapt to the register and login from nest
-  authenticate(data: AuthPlayerInterface) {
-    localStorage.setItem('ichi-auth', JSON.stringify(data));
+  login(loginDto: LoginDto): Observable<any> {
+    return this.http.post<any>(`${environment.apiUrl}/auth/login`, loginDto);
+  }
+
+  authenticate(token: string) {
+    this.sessionStorageService.set('ichi-auth-token', token);
   }
 
   unauthenticate() {
-    localStorage.removeItem('ichi-auth');
+    this.sessionStorageService.remove('ichi-auth-token');
   }
 
   isAuthenticated(): boolean {
-    const data = localStorage.getItem('ichi-auth');
+    const data = this.sessionStorageService.get('ichi-auth-token');
 
-    if (data !== null) {
-      const obj = JSON.parse(data);
-      return this.isAuthPlayer(obj);
-    }
-
-    return false;
-  }
-
-  private isAuthPlayer(obj: any): obj is AuthPlayerInterface {
-    return 'id' in obj && 'nickname' in obj;
+    return data !== null;
   }
 }
