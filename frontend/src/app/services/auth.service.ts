@@ -22,8 +22,8 @@ export class AuthService {
   }
 
   authenticate(token: string) {
-    this.isUserLoggedIn.next(true);
     this.sessionStorageService.set('ichi-auth-token', token);
+    this.isUserLoggedIn.next(true);
   }
 
   unauthenticate() {

@@ -19,6 +19,10 @@ export class MenuBarComponent implements OnInit {
   ) {
     this.authService.isUserLoggedIn.subscribe((value) => {
       this.isAuthenticated = value;
+      if (value)
+        this.username = this.jwtService.getJWTData().username;
+
+        console.log(this.username);
     });
   }
 
