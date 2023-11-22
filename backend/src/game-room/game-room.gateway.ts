@@ -45,6 +45,7 @@ export class GameRoomGateway {
       await this.gameRoomService.createGameRoom(playerId);
     const sessionPlayer: playersInterface = {
       id: client.id,
+      isCreator: true,
       username: player.username,
     };
 
@@ -56,6 +57,7 @@ export class GameRoomGateway {
 
       client.emit('create-response', {
         message: 'Game room created',
+        players: this.sessions.get(gameRoom.code).players,
         code: gameRoom.code,
       });
     }
@@ -90,6 +92,7 @@ export class GameRoomGateway {
 
     const sessionPlayer: playersInterface = {
       id: client.id,
+      isCreator: false,
       username: player.username,
     };
 
@@ -98,10 +101,10 @@ export class GameRoomGateway {
     session.players.forEach((player) => {
       client
         .to(player.id)
-        .emit('join-response', `${sessionPlayer.username} joined`);
+        .emit('join-response', { status: 'success', players: session.players });
     });
 
-    client.emit('join-response', `You joined the game room`);
+    client.emit('join-response', { status: 'success', code: code, players: session.players, joined: true });
   }
 
   @SubscribeMessage('game-start')

@@ -17,23 +17,21 @@ export class WsJwtGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const client = context.switchToWs().getClient();
     const token = client.handshake.auth.token;
-    console.log('client', client);
-    console.log('token', token);
+    console.log(token);
+
     if (!token) {
       throw new UnauthorizedException();
     }
 
     try {
-      const decoded = this.jwtService.verify(token, {
-        secret: `${process.env.SECRET_KEY}`,
-      });
+      const decoded = this.jwtService.verify(token);
       console.log(decoded);
       return true;
     } catch (error) {
       if (error instanceof TokenExpiredError) {
-        throw new UnauthorizedException('Token expiré');
+        throw new UnauthorizedException('Expired token');
       } else {
-        throw new UnauthorizedException('Token invalide');
+        throw new UnauthorizedException('Invalid Token');
       }
     }
   }

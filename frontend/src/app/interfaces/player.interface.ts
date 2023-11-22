@@ -1,4 +1,4 @@
-export interface playersInterface {
+export interface PlayerInterface {
   id: string;
   isCreator: boolean;
   username: string;

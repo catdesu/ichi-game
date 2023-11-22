@@ -20,12 +20,12 @@ export class JwtService {
     }
   }
 
-  getUserId() {
+  getPlayerId(): number|null {
     const jwtData = this.getJWTData();
-    return jwtData !== undefined ? jwtData.userId : 0;
+    return jwtData !== undefined ? jwtData.userId : null;
   }
 
-  getUsername(): string {
+  getUsername(): string|null {
     const jwtData = this.getJWTData();
     return jwtData !== undefined ? jwtData.username : null;
   }

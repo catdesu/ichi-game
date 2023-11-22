@@ -16,6 +16,7 @@ import { RegisterComponent } from './components/register/register.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { MenuBarComponent } from './components/menu-bar/menu-bar.component';
 import { MenubarModule } from 'primeng/menubar';
+import { TableModule } from 'primeng/table';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { MenubarModule } from 'primeng/menubar';
     ReactiveFormsModule,
     InputTextModule,
     BrowserAnimationsModule,
-    MenubarModule
+    MenubarModule,
+    TableModule
   ],
   providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
   bootstrap: [AppComponent]

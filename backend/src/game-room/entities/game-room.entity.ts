@@ -7,6 +7,9 @@ export class GameRoom {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  fk_creator_player_id: number;
+
   @Column({ length: 6 })
   code: string;
 

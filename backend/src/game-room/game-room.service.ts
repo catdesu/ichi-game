@@ -24,6 +24,7 @@ export class GameRoomService {
 
     const newGameRoom = new GameRoom();
     newGameRoom.code = code;
+    newGameRoom.fk_creator_player_id = playerId;
     newGameRoom.status = GameRoomStatus.Open;
     newGameRoom.max_players = ROOM_MAX_PLAYERS;
 
