@@ -20,13 +20,13 @@ export class MenuBarComponent implements OnInit {
     this.authService.isUserLoggedIn.subscribe((value) => {
       this.isAuthenticated = value;
       if (value)
-        this.username = this.jwtService.getJWTData().username;
+        this.username = this.jwtService.getJWTData()?.username;
     });
   }
 
   ngOnInit(): void {
     this.isAuthenticated = this.authService.isAuthenticated();
-    this.username = this.jwtService.getJWTData().username;
+    this.username = this.jwtService.getJWTData()?.username;
   }
 
   logout() {

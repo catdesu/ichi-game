@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsNumber, IsOptional } from 'class-validator';
 
 export class UpdatePlayerDto {
   @IsNumber()
-  @IsNotEmpty()
-  fk_game_room_id: number;
+  @IsOptional()
+  fk_game_room_id: number | null;
 }

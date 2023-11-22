@@ -5,7 +5,7 @@
         </ng-template>
         <ng-template pTemplate="end">
             <div class="flex align-items-center" *ngIf="isAuthenticated">
-                <p-button class="mr-3" (onClick)="logout()" type="p-button" label="Logout"></p-button>
+                <p-button class="mr-3" icon="pi pi-sign-out" (onClick)="logout()" type="p-button" label="Logout"></p-button>
                 <span class="mr-2 text-xl text-medium">{{ username }}</span>
             </div>
         </ng-template>

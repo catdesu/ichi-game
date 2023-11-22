@@ -34,7 +34,7 @@
 
 <div *ngIf="joined" class="card" class="h-full w-full flex flex-column align-items-center">
     <p-card [style]="{'width': '25rem', 'margin-bottom': '2em'}">
-        <p-button icon="pi pi-arrow-circle-left" styleClass="p-button-secondary p-button-outlined mb-3" type="p-button" label="Leave game"></p-button>
+        <p-button (onClick)="leaveGame()" icon="pi pi-arrow-circle-left" styleClass="p-button-secondary p-button-outlined mb-3" type="p-button" label="Leave game"></p-button>
         <p-table [value]="players" styleClass="p-datatable-gridlines mb-3">
             <ng-template pTemplate="caption"> Game room code: {{ code }} </ng-template>
             <ng-template pTemplate="header">

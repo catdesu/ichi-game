@@ -18,6 +18,14 @@ export class GameRoomService {
     private readonly playersService: PlayersService
   ) {}
 
+  async GetSessionPlayer(data: any): Promise<Player> {
+    const player = await this.playersService.findOneById(data.userId);
+
+    if (!player) {}
+
+    return player;
+  }
+
   async createGameRoom(playerId: number): Promise<{gameRoom: GameRoom, player: Player}> {
     const code = await this.generateRandomUniqueCode();
     this.gameRooms.set(code, [playerId]);
@@ -51,6 +59,13 @@ export class GameRoomService {
     return await this.playersService.update(playerId, updatePlayerDto);
   }
 
+  async leaveGameRoom(playerId: number) {
+    const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
+    updatePlayerDto.fk_game_room_id = null;
+
+    await this.playersService.update(playerId, updatePlayerDto);
+  }
+
   async getPlayersInGameRoom(code: string): Promise<Player[]> {
     const gameRoom: GameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
@@ -58,6 +73,10 @@ export class GameRoomService {
     });
 
     return gameRoom.players;
+  }
+
+  async delete(code: string): Promise<any> {
+    return await this.gameRoomRepository.delete({ code: code });
   }
 
   private async generateRandomUniqueCode(): Promise<string> {

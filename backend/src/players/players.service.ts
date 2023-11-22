@@ -19,7 +19,7 @@ export class PlayersService {
   ) {}
 
   findOneById(id: number) {
-    const player = this.playerRepository.findOne({ where: { id: id } });
+    const player = this.playerRepository.findOne({ where: { id: id }, relations: ['gameRoom', 'gameRoom.players'] });
 
     if (!player) {
       throw new NotFoundException(`Player with ID ${id} not found`);

@@ -14,7 +14,6 @@ export class WebsocketService {
   private socket?: Socket;
   public players = new BehaviorSubject<PlayerInterface[]>([]);
   public joined = new BehaviorSubject<boolean>(false);
-  public isCreator = new BehaviorSubject<boolean>(false);
   public code = new BehaviorSubject<string>('');
 
   constructor(
@@ -37,6 +36,7 @@ export class WebsocketService {
 
     this.socket.on('create-response', (data) => this.handleCreateGame(data));
     this.socket.on('join-response', (data) => this.handleJoinGame(data));
+    this.socket.on('leave-response', (data) => this.handleLeaveGame(data));
   }
 
   createGame() {
@@ -70,5 +70,30 @@ export class WebsocketService {
     this.joined.next(true);
     this.code.next(data.code);
     this.players.next(data.players);
+  }
+
+  leaveGame() {
+    const playerId = this.jwtService.getPlayerId();
+
+    if (playerId) {
+      this.socket?.emit('leave', {
+        code: this.code.value,
+        playerId: playerId,
+      });
+    }
+  }
+
+  handleLeaveGame(data: any) {
+    if (data) {
+      this.players.next(data.players);
+    } else {
+      this.resetState();
+    }
+  }
+
+  resetState() {
+    this.code.next('');
+    this.players.next([]);
+    this.joined.next(false);
   }
 }

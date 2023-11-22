@@ -12,6 +12,7 @@ import { GameRoomStatus } from './enums/game-room-status.enum';
 import { ROOM_MAX_PLAYERS } from 'src/constants';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -23,15 +24,89 @@ export class GameRoomGateway {
   server: Server;
   private readonly sessions = new Map<string, SessionsInterface>();
 
-  constructor(private readonly gameRoomService: GameRoomService) {}
+  constructor(
+    private readonly gameRoomService: GameRoomService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @UseGuards(WsJwtGuard)
-  handleConnection(client: Socket): void {
-    console.log(client.id, 'is connected');
+  async handleConnection(client: Socket): Promise<void> {
+    const token = client.handshake.auth.token;
+    const result = this.jwtService.decode(token);
+
+    const player = await this.gameRoomService.GetSessionPlayer(result);
+
+    
+
+    if (player.gameRoom !== null) {
+      if (!this.sessions.has(player.gameRoom.code)) {
+        const sessionPlayer: playersInterface = {
+          id: client.id,
+          isCreator: false,
+          username: player.username,
+        };
+
+        this.sessions.set(player.gameRoom.code, {
+          status: player.gameRoom.status,
+          players: [sessionPlayer],
+        });
+      } else {
+        if (!this.sessions.get(player.gameRoom.code).players.includes({ id: client.id, isCreator: false, username: player.username })) {
+          this.sessions.get(player.gameRoom.code).players.push({
+            id: client.id,
+            isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+            username: player.username,
+          });
+        }
+      }
+
+      this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
+        client
+          .to(thisPlayer.id)
+          .emit('join-response', {
+            status: 'success',
+            code: player.gameRoom.code,
+            isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+            players: this.sessions.get(player.gameRoom.code).players,
+          });
+      });
+
+      client.emit('join-response', {
+        status: 'success',
+        code: player.gameRoom.code,
+        players: this.sessions.get(player.gameRoom.code).players,
+        joined: true,
+      });
+    }
   }
 
-  handleDisconnect(client: Socket): void {
-    console.log(client.id, 'is disconnected');
+  async handleDisconnect(client: Socket): Promise<void> {
+    const token = client.handshake.auth.token;
+    const result = this.jwtService.decode(token);
+
+    const player = await this.gameRoomService.GetSessionPlayer(result);
+
+    if (player.gameRoom !== null) {
+      if (this.sessions.has(player.gameRoom.code)) {
+        this.sessions
+          .get(player.gameRoom.code)
+          .players.forEach((thisPlayer, index) => {
+            if (thisPlayer.username === player.username) {
+              this.sessions.get(player.gameRoom.code).players.splice(index, 1);
+            }
+          });
+      }
+  
+      this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
+        client
+          .to(thisPlayer.id)
+          .emit('join-response', {
+            status: 'success',
+            isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+            players: this.sessions.get(player.gameRoom.code).players,
+          });
+      });
+    }
   }
 
   @UseGuards(WsJwtGuard)
@@ -67,10 +142,10 @@ export class GameRoomGateway {
   @SubscribeMessage('join')
   async handleJoinGameRoom(
     client: Socket,
-    data: { code: string, playerId: number },
+    data: { code: string; playerId: number },
   ): Promise<void> {
     const { code, playerId } = data;
-    
+
     if (!this.sessions.has(code)) {
       client.emit('join-response', `Room with this code does not exist!`);
       return;
@@ -79,12 +154,18 @@ export class GameRoomGateway {
     const session = this.sessions.get(code);
 
     if (session.status !== GameRoomStatus.Open) {
-      client.emit('join-response', { status: 'error', message: 'Room is not joinable!' });
+      client.emit('join-response', {
+        status: 'error',
+        message: 'Room is not joinable!',
+      });
       return;
     }
 
     if (session.players.length === ROOM_MAX_PLAYERS) {
-      client.emit('join-response', { status: 'error', message: 'Room is already full!' });
+      client.emit('join-response', {
+        status: 'error',
+        message: 'Room is already full!',
+      });
       return;
     }
 
@@ -104,12 +185,46 @@ export class GameRoomGateway {
         .emit('join-response', { status: 'success', players: session.players });
     });
 
-    client.emit('join-response', { status: 'success', code: code, players: session.players, joined: true });
+    client.emit('join-response', {
+      status: 'success',
+      code: code,
+      players: session.players,
+      joined: true,
+    });
   }
 
-  @SubscribeMessage('game-start')
-  handleGameStart(client: Socket, data: { code: string, playerId: number }) {}
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('leave')
+  async handleLeave(client: Socket, data: { code: string; playerId: number }) {
+    await this.gameRoomService.leaveGameRoom(data.playerId);
+
+    if (this.sessions.has(data.code)) {
+      this.sessions.get(data.code).players.forEach((thisPlayer, index) => {
+        if (thisPlayer.id === client.id) {
+          this.sessions.get(data.code).players.splice(index, 1);
+        }
+      });
+
+      if (this.sessions.get(data.code).players.length === 0) {
+        this.sessions.delete(data.code);
+        await this.gameRoomService.delete(data.code);
+      } else {
+        this.sessions.get(data.code).players.forEach((thisPlayer) => {
+          client
+            .to(thisPlayer.id)
+            .emit('leave-response', {
+              players: this.sessions.get(data.code).players,
+            });
+        });
+      }
   
-  @SubscribeMessage('game-finished')
+      client.emit('leave-response');
+    }
+  }
+
+  @SubscribeMessage('start')
+  handleGameStart(client: Socket, data: { code: string; playerId: number }) {}
+
+  @SubscribeMessage('finished')
   handleGameFinished(client: Socket, data: { code: string }) {}
 }

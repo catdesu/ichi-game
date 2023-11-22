@@ -52,4 +52,8 @@ export class GameRoomComponent implements OnInit {
     const code = this.joinGameForm.get('code')?.value;
     this.websocketService.joinGame(code);
   }
+
+  leaveGame() {
+    this.websocketService.leaveGame();
+  }
 }
