@@ -64,6 +64,18 @@ export class PlayersService {
 
     return await this.playerRepository.save(player);
   }
+  
+  async updateByUsername(username: string, updatePlayerDto: UpdatePlayerDto) {
+    const player = await this.playerRepository.findOne({
+      where: { username: username },
+    });
+
+    if (!player) throw new Error('Player not found');
+
+    player.hand_cards = updatePlayerDto.hand_cards;
+
+    return await this.playerRepository.save(player);
+  }
 
   private async hashPassword(password: string): Promise<string> {
     return await argon2.hash(password);

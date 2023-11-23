@@ -5,6 +5,9 @@ import { SessionStorageService } from './session-storage.service';
 import { JwtService } from './jwt.service';
 import { BehaviorSubject } from 'rxjs';
 import { PlayerInterface } from '../interfaces/player.interface';
+import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +21,10 @@ export class WebsocketService {
 
   constructor(
     private readonly sessionsService: SessionStorageService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService,
+    private readonly toastrService: ToastrService,
+    private readonly router: Router
   ) {}
 
   connect(): void {
@@ -29,6 +35,8 @@ export class WebsocketService {
         token: `${this.sessionsService.get('ichi-auth-token')}`,
       },
     });
+
+    this.socket.on('invalid-token', () => this.handleInvalidToken());
 
     this.socket.on('connect', () => {
       console.log('connected');
@@ -89,6 +97,18 @@ export class WebsocketService {
     } else {
       this.resetState();
     }
+  }
+
+  handleInvalidToken() {
+    this.authService.unauthenticate();
+    this.toastrService.error('You are not logged in');
+    this.router.navigate(['auth', 'login']);
+  }
+
+  startGame() {
+    this.socket?.emit('start', {
+      code: this.code.value
+    })
   }
 
   resetState() {

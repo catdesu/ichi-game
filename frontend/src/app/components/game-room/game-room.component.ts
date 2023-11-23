@@ -56,4 +56,8 @@ export class GameRoomComponent implements OnInit {
   leaveGame() {
     this.websocketService.leaveGame();
   }
+
+  startGame() {
+    this.websocketService.startGame();
+  }
 }

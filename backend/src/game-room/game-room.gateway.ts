@@ -13,6 +13,11 @@ import { ROOM_MAX_PLAYERS } from 'src/constants';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { JwtService } from '@nestjs/jwt';
+import packOfCards from './cards/pack-of-cards';
+import { PlayersService } from 'src/players/players.service';
+import { UpdatePlayerDto } from 'src/players/dto/update-player.dto';
+import { CreateGameStateDto } from 'src/game-states/dto/create-game-state.dto';
+import { GameStatesService } from 'src/game-states/game-states.service';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -26,6 +31,8 @@ export class GameRoomGateway {
 
   constructor(
     private readonly gameRoomService: GameRoomService,
+    private readonly playerService: PlayersService,
+    private readonly gameStatesService: GameStatesService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -35,8 +42,6 @@ export class GameRoomGateway {
     const result = this.jwtService.decode(token);
 
     const player = await this.gameRoomService.GetSessionPlayer(result);
-
-    
 
     if (player.gameRoom !== null) {
       if (!this.sessions.has(player.gameRoom.code)) {
@@ -142,7 +147,7 @@ export class GameRoomGateway {
   @SubscribeMessage('join')
   async handleJoinGameRoom(
     client: Socket,
-    data: { code: string; playerId: number },
+    data: { code: string, playerId: number },
   ): Promise<void> {
     const { code, playerId } = data;
 
@@ -182,7 +187,7 @@ export class GameRoomGateway {
     session.players.forEach((player) => {
       client
         .to(player.id)
-        .emit('join-response', { status: 'success', players: session.players });
+        .emit('join-response', { status: 'success', code: code, players: session.players });
     });
 
     client.emit('join-response', {
@@ -195,7 +200,7 @@ export class GameRoomGateway {
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave')
-  async handleLeave(client: Socket, data: { code: string; playerId: number }) {
+  async handleLeave(client: Socket, data: { code: string, playerId: number }) {
     await this.gameRoomService.leaveGameRoom(data.playerId);
 
     if (this.sessions.has(data.code)) {
@@ -223,7 +228,42 @@ export class GameRoomGateway {
   }
 
   @SubscribeMessage('start')
-  handleGameStart(client: Socket, data: { code: string; playerId: number }) {}
+  async handleGameStart(client: Socket, data: { code: string }) {
+    if (this.sessions.has(data.code)) {
+      const session = this.sessions.get(data.code);
+      const shuffleDeck = packOfCards.sort(() => Math.random() - 0.5);
+      const turnOrder = [];
+      const discardPile = [];
+
+      session.players.forEach((thisPlayer) => {
+        let playerHand = [];
+
+        turnOrder.push(thisPlayer.username);
+
+        for (let i = 0; i < 7; i++) {
+          const drawnCard = shuffleDeck.pop();
+          playerHand.push(drawnCard);
+        }
+
+        const updatedPlayer: UpdatePlayerDto = { hand_cards: JSON.stringify(playerHand) };
+        this.playerService.updateByUsername(thisPlayer.username, updatedPlayer);
+      });
+
+      discardPile.push(shuffleDeck.pop());
+
+      const player = await this.playerService.findOneByUsername(turnOrder[0]);
+  
+      const createGameStateDto: CreateGameStateDto = { 
+        fk_game_room_id: player.fk_game_room_id,
+        fk_current_player_id: player.id,
+        deck: JSON.stringify(shuffleDeck),
+        discard_pile: JSON.stringify(discardPile),
+        turn_order: JSON.stringify(turnOrder),
+      };
+
+      this.gameStatesService.create(createGameStateDto);
+    }
+  }
 
   @SubscribeMessage('finished')
   handleGameFinished(client: Socket, data: { code: string }) {}

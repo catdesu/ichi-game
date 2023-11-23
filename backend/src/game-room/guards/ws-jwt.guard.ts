@@ -29,8 +29,10 @@ export class WsJwtGuard implements CanActivate {
       return true;
     } catch (error) {
       if (error instanceof TokenExpiredError) {
+        client.emit('invalid-token');
         throw new UnauthorizedException('Expired token');
       } else {
+        client.emit('invalid-token');
         throw new UnauthorizedException('Invalid Token');
       }
     }

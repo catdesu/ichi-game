@@ -1,6 +1,7 @@
 import { Exclude } from "class-transformer";
 import { GameRoom } from "src/game-room/entities/game-room.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { GameState } from "src/game-states/entities/game-state.entity";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Player {
@@ -22,5 +23,8 @@ export class Player {
   password: string;
 
   @Column({ nullable: true, type: 'json' })
-  hand_cards: Record<string, any>;
+  hand_cards: string;
+
+  @OneToOne(() => GameState)
+  gameState: GameState;
 }
