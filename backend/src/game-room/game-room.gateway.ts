@@ -231,7 +231,7 @@ export class GameRoomGateway {
   async handleGameStart(client: Socket, data: { code: string }) {
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
-      const shuffleDeck = packOfCards.sort(() => Math.random() - 0.5);
+      const shuffleDeck = [...packOfCards.sort(() => Math.random() - 0.5)];
       const turnOrder = [];
       const discardPile = [];
       const cardToSkip = ['W', 'D4W'];
