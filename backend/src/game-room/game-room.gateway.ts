@@ -234,6 +234,7 @@ export class GameRoomGateway {
       const shuffleDeck = packOfCards.sort(() => Math.random() - 0.5);
       const turnOrder = [];
       const discardPile = [];
+      const cardToSkip = ['W', 'D4W'];
 
       session.players.forEach((thisPlayer) => {
         let playerHand = [];
@@ -249,7 +250,15 @@ export class GameRoomGateway {
         this.playerService.updateByUsername(thisPlayer.username, updatedPlayer);
       });
 
-      discardPile.push(shuffleDeck.pop());
+      let firstCardPlayed = shuffleDeck.pop();
+      discardPile.push(firstCardPlayed);
+
+      // Prevent beginnnig with a special card (without colour)
+      while (cardToSkip.includes(firstCardPlayed)) {
+        shuffleDeck.unshift(discardPile.pop());
+        firstCardPlayed = shuffleDeck.pop();
+        discardPile.push(firstCardPlayed);
+      }
 
       const player = await this.playerService.findOneByUsername(turnOrder[0]);
   
