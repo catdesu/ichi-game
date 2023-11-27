@@ -1,0 +1,296 @@
+.game {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.game {
+  font-family: Arial;
+  perspective: 100em;
+}
+
+/* CARDS STYLES */
+.card {
+  display: inline-block;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 0.8em;
+  padding: 0.3em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: 200ms;
+  position: relative;
+}
+
+.card .bckg {
+  width: 5em;
+  height: 7.678500000000001em;
+  border-radius: 0.5em;
+  overflow: hidden;
+  position: relative;
+}
+
+.card .center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3em;
+}
+
+/* BLUE CARDS */
+.card.OB {
+  /* Add styles specific to the .OB class */
+  background: url("../../../assets/images/cards-front/0B.png") center/cover;
+  color: transparent; /* Set text color to transparent if there is any text content */
+}
+
+.card .OB .bckg {
+  /* Add styles specific to the .OB class */
+  background-color: transparent; /* Set background color to transparent */
+}
+
+/* GREEN CARDS */
+.card.OG {
+  background: url("../../../assets/images/cards-front/0G.png") center/cover;
+  color: transparent;
+}
+
+.card .OG .bckg {
+  background-color: transparent;
+}
+
+/* RED CARDS */
+.card.OR {
+  background: url("../../../assets/images/cards-front/0R.png") center/cover;
+  color: transparent;
+}
+
+.card .OR .bckg {
+  background-color: transparent;
+}
+
+/* YELLOW CARDS */
+.card.OY {
+  background: url("../../../assets/images/cards-front/0Y.png") center/cover;
+  color: transparent;
+}
+
+.card .OY .bckg {
+  background-color: transparent;
+}
+
+.card.black {
+  color: #1f1b18;
+}
+
+.card.black .bckg {
+  background-color: #1f1b18;
+}
+
+.card.turned:hover {
+  cursor: default;
+}
+
+.card.turned {
+  cursor: default;
+  background: url("../../../assets/images/card-back.png") center/cover;
+}
+
+.card.turned .bckg::before {
+  background-color: transparent; /* Set the background color to transparent */
+}
+
+.game-field #piles_area {
+  position: relative;
+  border-radius: 4em;
+  transition: 200ms;
+}
+
+.game-field.yellow #piles_area {
+  background-color: rgba(252, 246, 4, 0.4);
+}
+
+.game-field.blue #piles_area {
+  background-color: rgba(4, 147, 222, 0.4);
+}
+
+.game-field.red #piles_area {
+  background-color: rgba(220, 37, 28, 0.4);
+}
+
+.game-field.green #piles_area {
+  background-color: rgba(1, 141, 65, 0.4);
+}
+
+#draw_pile {
+  position: absolute;
+  left: 5em;
+  top: 5em;
+}
+
+#draw_pile .card.top-card,
+#draw_pile .card.pile {
+  position: absolute;
+}
+
+#draw_pile .card.pile {
+  box-shadow: 0px 2px #fff, 0px 4px rgba(0, 0, 0, 0.16), 0px 6px #fff,
+    0px 8px rgba(0, 0, 0, 0.16), 0px 10px #fff, 0px 12px rgba(0, 0, 0, 0.16),
+    0px 14px #fff, 0px 16px rgba(0, 0, 0, 0.16), 0px 18px #fff,
+    0px 20px rgba(0, 0, 0, 0.16);
+}
+
+#draw_pile .card.pile:hover {
+  transform: none;
+}
+
+#draw_pile .card.top-card .OG {
+  background: url("../../../assets/images/cards-front/0G.png") center/cover;
+  color: transparent;
+}
+
+#draw_pile .card.top-card {
+  z-index: 100;
+  box-shadow: none;
+}
+
+#draw_pile .card.top-card:hover {
+  box-shadow: 0px 4px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  transform: translateY(1em);
+}
+
+#discard_pile {
+  position: absolute;
+  left: 12em;
+  top: 5.7em;
+}
+
+#discard_pile .card.top-card,
+#discard_pile .card.pile {
+  position: absolute;
+}
+
+#discard_pile .card.pile {
+  box-shadow: 0px 2px #fff, 0px 4px rgba(0, 0, 0, 0.16), 0px 6px #fff,
+    0px 8px rgba(0, 0, 0, 0.16);
+}
+
+#discard_pile .card.pile:hover {
+  transform: none;
+}
+
+#discard_pile .card.top-card {
+  z-index: 100;
+  box-shadow: none;
+}
+
+.game-field {
+  height: 100%;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  grid-gap: 0.5em;
+  grid-template-columns: 12em 24em 12em;
+  grid-template-rows: 12em 24em 12em;
+}
+
+.game-field.perspective {
+  transform: rotateX(30deg);
+}
+
+#piles_area {
+  grid-area: 2/2;
+}
+
+#player {
+  grid-area: 3/2;
+}
+
+#player_left {
+  grid-area: 2/1;
+}
+
+#player_top {
+  grid-area: 1/2;
+}
+
+#player_right {
+  grid-area: 2/3;
+}
+
+.player_hand {
+  position: relative;
+}
+
+.player_hand .card {
+  position: absolute;
+}
+
+.player_hand .card:nth-child(1) {
+  left: 2.2em;
+}
+
+.player_hand .card:nth-child(2) {
+  left: 4.4em;
+}
+
+.player_hand .card:nth-child(3) {
+  left: 6.600000000000001em;
+}
+
+.player_hand .card:nth-child(4) {
+  left: 8.8em;
+}
+
+.player_hand .card:nth-child(5) {
+  left: 11em;
+}
+
+.player_hand .card:nth-child(6) {
+  left: 13.200000000000001em;
+}
+
+.player_hand .card:nth-child(7) {
+  left: 15.400000000000002em;
+}
+
+#player .player_hand .card {
+  cursor: pointer;
+}
+
+#player .player_hand .card:hover {
+  transform-origin: left bottom;
+  transform: rotate(-10deg) translateY(-0.5em);
+}
+
+#player .player_hand .card:hover ~ .card {
+  transform: translateX(2em);
+}
+
+#player_left .player_hand {
+  transform-origin: left bottom;
+  transform: rotate(90deg) translateY(-10em);
+}
+
+#player_top .player_hand {
+  transform: translateY(1em);
+}
+
+#player_right .player_hand {
+  transform-origin: left bottom;
+  transform: rotate(-90deg) translate(-24em, 1em);
+}
+
+@keyframes moveCardToDeck {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(5em, -5em);
+  }
+}
+
+.card.move-to-deck {
+  animation: moveCardToDeck 0.5s ease-in-out;
+}

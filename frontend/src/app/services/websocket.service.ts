@@ -17,6 +17,7 @@ export class WebsocketService {
   private socket?: Socket;
   public players = new BehaviorSubject<PlayerInterface[]>([]);
   public joined = new BehaviorSubject<boolean>(false);
+  public started = new BehaviorSubject<boolean>(false);
   public code = new BehaviorSubject<string>('');
 
   constructor(
@@ -45,6 +46,7 @@ export class WebsocketService {
     this.socket.on('create-response', (data) => this.handleCreateGame(data));
     this.socket.on('join-response', (data) => this.handleJoinGame(data));
     this.socket.on('leave-response', (data) => this.handleLeaveGame(data));
+    this.socket.on('start-response', (data) => this.handleStartGame(data));
   }
 
   createGame() {
@@ -109,6 +111,13 @@ export class WebsocketService {
     this.socket?.emit('start', {
       code: this.code.value
     })
+  }
+
+  handleStartGame(data: any) {
+    const started = JSON.parse(data);
+    if (started) {
+      this.started.next(started)
+    }
   }
 
   resetState() {

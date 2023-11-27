@@ -227,6 +227,7 @@ export class GameRoomGateway {
     }
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('start')
   async handleGameStart(client: Socket, data: { code: string }) {
     if (this.sessions.has(data.code)) {
@@ -271,9 +272,14 @@ export class GameRoomGateway {
       };
 
       this.gameStatesService.create(createGameStateDto);
+
+      session.players.forEach((thisPlayer) => {
+        client.to(thisPlayer.id).emit('start-response', 'true');
+      });
     }
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('finished')
   handleGameFinished(client: Socket, data: { code: string }) {}
 }

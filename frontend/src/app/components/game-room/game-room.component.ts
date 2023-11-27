@@ -18,6 +18,7 @@ export class GameRoomComponent implements OnInit {
     ]),
   });
   public joined: boolean = false;
+  public started: boolean = false;
   public code: string = '';
   public players: PlayerInterface[] = [];
 
@@ -36,6 +37,10 @@ export class GameRoomComponent implements OnInit {
     
     this.websocketService.players.subscribe((players) => {
       this.players = players;
+    });
+    
+    this.websocketService.started.subscribe((started) => {
+      this.started = started;
     });
   }
 
