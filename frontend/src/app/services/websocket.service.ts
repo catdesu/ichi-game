@@ -8,6 +8,7 @@ import { PlayerInterface } from '../interfaces/player.interface';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { GameInterface } from '../interfaces/game.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,11 @@ export class WebsocketService {
   public joined = new BehaviorSubject<boolean>(false);
   public started = new BehaviorSubject<boolean>(false);
   public code = new BehaviorSubject<string>('');
+  public playerHand = new BehaviorSubject<string[]>([]);
+  public playerCards = new BehaviorSubject<
+    { username: string; cardsCount: number }[]
+  >([]);
+  public playedCard = new BehaviorSubject<string>('');
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -109,20 +115,25 @@ export class WebsocketService {
 
   startGame() {
     this.socket?.emit('start', {
-      code: this.code.value
-    })
+      code: this.code.value,
+    });
   }
 
-  handleStartGame(data: any) {
-    const started = JSON.parse(data);
-    if (started) {
-      this.started.next(started)
-    }
+  handleStartGame(data: GameInterface) {
+    this.playerHand.next(data.hand_cards);
+    this.playedCard.next(data.played_card);
+    this.playerCards.next(data.player_cards);
+    this.started.next(data.started);
   }
 
   resetState() {
     this.code.next('');
     this.players.next([]);
     this.joined.next(false);
+    this.started.next(false);
+    this.playerHand.next([]);
+    this.playedCard.next('');
+    this.playerCards.next([]);
+    this.started.next(false);
   }
 }

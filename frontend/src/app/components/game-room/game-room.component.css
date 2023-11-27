@@ -38,46 +38,12 @@
 }
 
 /* BLUE CARDS */
-.card.OB {
-  /* Add styles specific to the .OB class */
-  background: url("../../../assets/images/cards-front/0B.png") center/cover;
-  color: transparent; /* Set text color to transparent if there is any text content */
-}
-
-.card .OB .bckg {
-  /* Add styles specific to the .OB class */
-  background-color: transparent; /* Set background color to transparent */
-}
 
 /* GREEN CARDS */
-.card.OG {
-  background: url("../../../assets/images/cards-front/0G.png") center/cover;
-  color: transparent;
-}
-
-.card .OG .bckg {
-  background-color: transparent;
-}
 
 /* RED CARDS */
-.card.OR {
-  background: url("../../../assets/images/cards-front/0R.png") center/cover;
-  color: transparent;
-}
-
-.card .OR .bckg {
-  background-color: transparent;
-}
 
 /* YELLOW CARDS */
-.card.OY {
-  background: url("../../../assets/images/cards-front/0Y.png") center/cover;
-  color: transparent;
-}
-
-.card .OY .bckg {
-  background-color: transparent;
-}
 
 .card.black {
   color: #1f1b18;
@@ -145,7 +111,7 @@
 }
 
 #draw_pile .card.top-card .OG {
-  background: url("../../../assets/images/cards-front/0G.png") center/cover;
+  /* background: url("../../../assets/images/cards-front/0G.png") center/cover; */
   color: transparent;
 }
 

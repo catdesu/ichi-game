@@ -17,10 +17,14 @@ export class GameRoomComponent implements OnInit {
       Validators.maxLength(6),
     ]),
   });
+  public playerPos = ['player_top', 'player_left', 'player_right'];
   public joined: boolean = false;
   public started: boolean = false;
   public code: string = '';
   public players: PlayerInterface[] = [];
+  public playerHand: string[] = [];
+  public playerCards: { username: string; cardsCount: number }[] = [];
+  public playedCard: string = '';
 
   constructor(private readonly websocketService: WebsocketService, private readonly jwtService: JwtService) {}
 
@@ -41,6 +45,18 @@ export class GameRoomComponent implements OnInit {
     
     this.websocketService.started.subscribe((started) => {
       this.started = started;
+    });
+
+    this.websocketService.playerHand.subscribe((playerHand) => {
+      this.playerHand = playerHand;
+    });
+
+    this.websocketService.playerCards.subscribe((playerCards) => {
+      this.playerCards = playerCards;
+    });
+
+    this.websocketService.playedCard.subscribe((playedCard) => {
+      this.playedCard = playedCard;
     });
   }
 
@@ -64,5 +80,12 @@ export class GameRoomComponent implements OnInit {
 
   startGame() {
     this.websocketService.startGame();
+  }
+
+  getCardStyle(cardName: string): object {
+    return {
+      'background': `url("../../../assets/images/cards-front/${cardName}.png") center/cover`,
+      'color': 'transparent'
+    };
   }
 }

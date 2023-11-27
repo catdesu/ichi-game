@@ -232,13 +232,14 @@ export class GameRoomGateway {
   async handleGameStart(client: Socket, data: { code: string }) {
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
-      const shuffleDeck = [...packOfCards.sort(() => Math.random() - 0.5)];
-      const turnOrder = [];
-      const discardPile = [];
-      const cardToSkip = ['W', 'D4W'];
+      const shuffleDeck: string[] = [...packOfCards.sort(() => Math.random() - 0.5)];
+      const turnOrder: string[] = [];
+      const discardPile: string[] = [];
+      const cardToSkip: string[] = ['W', 'D4W'];
+      const playerCards: { username: string, cardsCount: number }[] = [];
 
       session.players.forEach((thisPlayer) => {
-        let playerHand = [];
+        let playerHand: string[] = [];
 
         turnOrder.push(thisPlayer.username);
 
@@ -249,6 +250,11 @@ export class GameRoomGateway {
 
         const updatedPlayer: UpdatePlayerDto = { hand_cards: JSON.stringify(playerHand) };
         this.playerService.updateByUsername(thisPlayer.username, updatedPlayer);
+        thisPlayer.handCards = playerHand;
+        playerCards.push({
+          username: thisPlayer.username,
+          cardsCount: playerHand.length
+        });
       });
 
       let firstCardPlayed = shuffleDeck.pop();
@@ -260,6 +266,10 @@ export class GameRoomGateway {
         firstCardPlayed = shuffleDeck.pop();
         discardPile.push(firstCardPlayed);
       }
+
+      // Set session game data
+      session.deck = shuffleDeck;
+      session.discardPile = discardPile;
 
       const player = await this.playerService.findOneByUsername(turnOrder[0]);
   
@@ -274,7 +284,14 @@ export class GameRoomGateway {
       this.gameStatesService.create(createGameStateDto);
 
       session.players.forEach((thisPlayer) => {
-        client.to(thisPlayer.id).emit('start-response', 'true');
+        const playerToIgnore = playerCards.filter((player) => player.username !== thisPlayer.username);
+        const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: playerToIgnore };
+
+        if (client.id === thisPlayer.id) {
+          client.emit('start-response', playerSession);
+        } else {
+          client.to(thisPlayer.id).emit('start-response', playerSession);
+        }
       });
     }
   }
