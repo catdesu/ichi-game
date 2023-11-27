@@ -75,6 +75,18 @@ export class GameRoomService {
     return gameRoom.players;
   }
 
+  async startGameRoom(code: string): Promise<void> {
+    const gameRoom = await this.gameRoomRepository.findOne({
+      where: { code: code }
+    });
+
+    if (!gameRoom) {}
+
+    gameRoom.status = GameRoomStatus.InProgress;
+
+    await this.gameRoomRepository.save(gameRoom);
+  }
+
   async delete(code: string): Promise<any> {
     return await this.gameRoomRepository.delete({ code: code });
   }

@@ -44,44 +44,46 @@ export class GameRoomGateway {
     const player = await this.gameRoomService.GetSessionPlayer(result);
 
     if (player.gameRoom !== null) {
-      if (!this.sessions.has(player.gameRoom.code)) {
-        const sessionPlayer: playersInterface = {
-          id: client.id,
-          isCreator: false,
-          username: player.username,
-        };
-
-        this.sessions.set(player.gameRoom.code, {
-          status: player.gameRoom.status,
-          players: [sessionPlayer],
-        });
-      } else {
-        if (!this.sessions.get(player.gameRoom.code).players.includes({ id: client.id, isCreator: false, username: player.username })) {
-          this.sessions.get(player.gameRoom.code).players.push({
+      if (player.gameRoom.status !== GameRoomStatus.Completed) {
+        if (!this.sessions.has(player.gameRoom.code)) {
+          const sessionPlayer: playersInterface = {
             id: client.id,
             isCreator: player.gameRoom.fk_creator_player_id === result.userId,
             username: player.username,
+          };
+  
+          this.sessions.set(player.gameRoom.code, {
+            status: player.gameRoom.status,
+            players: [sessionPlayer],
           });
+        } else {
+          if (!this.sessions.get(player.gameRoom.code).players.includes({ id: client.id, isCreator: false, username: player.username })) {
+            this.sessions.get(player.gameRoom.code).players.push({
+              id: client.id,
+              isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+              username: player.username,
+            });
+          }
         }
+  
+        this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
+          if (client.id === thisPlayer.id) {
+            client.emit('join-response', {
+              status: 'success',
+              code: player.gameRoom.code,
+              players: this.sessions.get(player.gameRoom.code).players,
+              joined: true,
+            });
+          } else {
+            client.to(thisPlayer.id).emit('join-response', {
+              status: 'success',
+              code: player.gameRoom.code,
+              isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+              players: this.sessions.get(player.gameRoom.code).players,
+            });
+          }
+        });
       }
-
-      this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
-        client
-          .to(thisPlayer.id)
-          .emit('join-response', {
-            status: 'success',
-            code: player.gameRoom.code,
-            isCreator: player.gameRoom.fk_creator_player_id === result.userId,
-            players: this.sessions.get(player.gameRoom.code).players,
-          });
-      });
-
-      client.emit('join-response', {
-        status: 'success',
-        code: player.gameRoom.code,
-        players: this.sessions.get(player.gameRoom.code).players,
-        joined: true,
-      });
     }
   }
 
@@ -282,6 +284,7 @@ export class GameRoomGateway {
       };
 
       this.gameStatesService.create(createGameStateDto);
+      this.gameRoomService.startGameRoom(data.code);
 
       session.players.forEach((thisPlayer) => {
         const playerToIgnore = playerCards.filter((player) => player.username !== thisPlayer.username);
