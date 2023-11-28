@@ -25,6 +25,7 @@ export class GameRoomComponent implements OnInit {
   public playerHand: string[] = [];
   public playerCards: { username: string; cardsCount: number }[] = [];
   public playedCard: string = '';
+  public playableCards: string[] = [];
 
   constructor(private readonly websocketService: WebsocketService, private readonly jwtService: JwtService) {}
 
@@ -58,6 +59,10 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.playedCard.subscribe((playedCard) => {
       this.playedCard = playedCard;
     });
+    
+    this.websocketService.playableCards.subscribe((playableCards) => {
+      this.playableCards = playableCards;
+    });
   }
 
   createGame() {
@@ -83,9 +88,23 @@ export class GameRoomComponent implements OnInit {
   }
 
   getCardStyle(cardName: string): object {
+    const isPlayable = this.playableCards.includes(cardName);
+
     return {
       'background': `url("../../../assets/images/cards-front/${cardName}.png") center/cover`,
-      'color': 'transparent'
+      'color': 'transparent',
+      'filter': isPlayable ? 'none' : 'brightness(50%)',
     };
+  }
+  
+  getTopCardStyle(cardName: string): object {
+    return {
+      'background': `url("../../../assets/images/cards-front/${cardName}.png") center/cover`,
+      'color': 'transparent',
+    };
+  }
+
+  playCard(cardName: string) {
+    console.log(cardName);
   }
 }

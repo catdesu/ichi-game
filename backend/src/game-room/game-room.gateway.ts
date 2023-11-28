@@ -42,14 +42,23 @@ export class GameRoomGateway {
     const result = this.jwtService.decode(token);
 
     const player = await this.gameRoomService.GetSessionPlayer(result);
+    const playerCards = [];
+    let handCards = [];
+    let discardPile = '';
+    let playableCards = [];
+    let otherPlayers = [];
 
     if (player.gameRoom !== null) {
       if (player.gameRoom.status !== GameRoomStatus.Completed) {
+        const isCreator = player.gameRoom.fk_creator_player_id === result.userId;
+        const isInProgress = player.gameRoom.status === GameRoomStatus.InProgress;
+
         if (!this.sessions.has(player.gameRoom.code)) {
           const sessionPlayer: playersInterface = {
             id: client.id,
-            isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+            isCreator: isCreator,
             username: player.username,
+            handCards: player.hand_cards.toString().split(','),
           };
   
           this.sessions.set(player.gameRoom.code, {
@@ -57,30 +66,58 @@ export class GameRoomGateway {
             players: [sessionPlayer],
           });
         } else {
-          if (!this.sessions.get(player.gameRoom.code).players.includes({ id: client.id, isCreator: false, username: player.username })) {
+          if (!this.sessions.get(player.gameRoom.code).players.includes({ id: client.id, isCreator: isCreator, username: player.username })) {
             this.sessions.get(player.gameRoom.code).players.push({
               id: client.id,
-              isCreator: player.gameRoom.fk_creator_player_id === result.userId,
+              isCreator: isCreator,
               username: player.username,
+              handCards: player.hand_cards.toString().split(','),
             });
           }
         }
+
+        const session = this.sessions.get(player.gameRoom.code);
+
+        session.players.forEach((thisPlayer) => {
+          let playerHand: string[] = player.gameRoom.players.find((player) => player.username === thisPlayer.username).hand_cards.toString().split(',');
+  
+          thisPlayer.handCards = playerHand;
+
+          playerCards.push({
+            username: thisPlayer.username,
+            cardsCount: playerHand.length,
+          });
+        });
+
+        if (isInProgress) {
+          const gameState = await this.gameStatesService.findOne(player.fk_game_room_id);
+
+          discardPile = gameState.discard_pile.toString();
+          handCards = player.hand_cards.toString().split(',');
+        }
   
         this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
+          if (player.hand_cards) {
+            playableCards = this.gameRoomService.getPlayableCards(thisPlayer.handCards, discardPile);
+            otherPlayers = playerCards.filter((player) => player.username !== thisPlayer.username);
+          }
+
+          const playerSession = {
+            status: 'success',
+            code: player.gameRoom.code,
+            players: this.sessions.get(player.gameRoom.code).players,
+            joined: true,
+            started: isInProgress,
+            hand_cards: thisPlayer.handCards,
+            played_card: discardPile,
+            player_cards: otherPlayers, 
+            playable_cards: playableCards
+          };
+
           if (client.id === thisPlayer.id) {
-            client.emit('join-response', {
-              status: 'success',
-              code: player.gameRoom.code,
-              players: this.sessions.get(player.gameRoom.code).players,
-              joined: true,
-            });
+            client.emit('join-response', playerSession);
           } else {
-            client.to(thisPlayer.id).emit('join-response', {
-              status: 'success',
-              code: player.gameRoom.code,
-              isCreator: player.gameRoom.fk_creator_player_id === result.userId,
-              players: this.sessions.get(player.gameRoom.code).players,
-            });
+            client.to(thisPlayer.id).emit('join-response', playerSession);
           }
         });
       }
@@ -237,7 +274,7 @@ export class GameRoomGateway {
       const shuffleDeck: string[] = [...packOfCards.sort(() => Math.random() - 0.5)];
       const turnOrder: string[] = [];
       const discardPile: string[] = [];
-      const cardToSkip: string[] = ['W', 'D4W'];
+      const cardsToSkip: string[] = ['changeColor', 'draw4'];
       const playerCards: { username: string, cardsCount: number }[] = [];
 
       session.players.forEach((thisPlayer) => {
@@ -255,7 +292,7 @@ export class GameRoomGateway {
         thisPlayer.handCards = playerHand;
         playerCards.push({
           username: thisPlayer.username,
-          cardsCount: playerHand.length
+          cardsCount: playerHand.length,
         });
       });
 
@@ -263,7 +300,7 @@ export class GameRoomGateway {
       discardPile.push(firstCardPlayed);
 
       // Prevent beginnnig with a special card (without colour)
-      while (cardToSkip.includes(firstCardPlayed)) {
+      while (cardsToSkip.includes(firstCardPlayed)) {
         shuffleDeck.unshift(discardPile.pop());
         firstCardPlayed = shuffleDeck.pop();
         discardPile.push(firstCardPlayed);
@@ -287,8 +324,9 @@ export class GameRoomGateway {
       this.gameRoomService.startGameRoom(data.code);
 
       session.players.forEach((thisPlayer) => {
-        const playerToIgnore = playerCards.filter((player) => player.username !== thisPlayer.username);
-        const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: playerToIgnore };
+        const playableCards = this.gameRoomService.getPlayableCards(thisPlayer.handCards, firstCardPlayed);
+        const otherPlayers = playerCards.filter((player) => player.username !== thisPlayer.username);
+        const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: otherPlayers, playable_cards: playableCards };
 
         if (client.id === thisPlayer.id) {
           client.emit('start-response', playerSession);

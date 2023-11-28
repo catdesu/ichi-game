@@ -11,6 +11,16 @@ export class GameStatesService {
     private readonly gameStateRepository: Repository<GameState>,
   ) {}
 
+  async findOne(gameRoomId: number): Promise<GameState> {
+    const gameState = await this.gameStateRepository.findOne({
+      where: { fk_game_room_id: gameRoomId }
+    });
+
+    if (!gameState) {}
+
+    return gameState;
+  }
+
   async create(createGameStateDto: CreateGameStateDto): Promise<GameState> {
     const gameState = new GameState();
 

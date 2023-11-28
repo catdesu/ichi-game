@@ -25,6 +25,7 @@ export class WebsocketService {
     { username: string; cardsCount: number }[]
   >([]);
   public playedCard = new BehaviorSubject<string>('');
+  public playableCards = new BehaviorSubject<string[]>([]);
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -83,9 +84,14 @@ export class WebsocketService {
   }
 
   handleJoinGame(data: any) {
-    this.joined.next(true);
+    this.joined.next(data.joined);
     this.code.next(data.code);
     this.players.next(data.players);
+    this.playerHand.next(data.hand_cards);
+    this.playedCard.next(data.played_card);
+    this.playerCards.next(data.player_cards);
+    this.started.next(data.started);
+    this.playableCards.next(data.playable_cards);
   }
 
   leaveGame() {

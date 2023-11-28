@@ -15,18 +15,21 @@ export class GameRoomService {
   constructor(
     @InjectRepository(GameRoom)
     private readonly gameRoomRepository: Repository<GameRoom>,
-    private readonly playersService: PlayersService
+    private readonly playersService: PlayersService,
   ) {}
 
   async GetSessionPlayer(data: any): Promise<Player> {
     const player = await this.playersService.findOneById(data.userId);
 
-    if (!player) {}
+    if (!player) {
+    }
 
     return player;
   }
 
-  async createGameRoom(playerId: number): Promise<{gameRoom: GameRoom, player: Player}> {
+  async createGameRoom(
+    playerId: number,
+  ): Promise<{ gameRoom: GameRoom; player: Player }> {
     const code = await this.generateRandomUniqueCode();
     this.gameRooms.set(code, [playerId]);
 
@@ -44,13 +47,13 @@ export class GameRoomService {
 
     const player = await this.playersService.update(playerId, updatePlayerDto);
 
-    return {gameRoom, player};
+    return { gameRoom, player };
   }
 
   async joinGameRoom(code: string, playerId: number): Promise<Player> {
     const gameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
-      relations: ['players']
+      relations: ['players'],
     });
 
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
@@ -69,7 +72,7 @@ export class GameRoomService {
   async getPlayersInGameRoom(code: string): Promise<Player[]> {
     const gameRoom: GameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
-      relations: ['players']
+      relations: ['players'],
     });
 
     return gameRoom.players;
@@ -77,10 +80,11 @@ export class GameRoomService {
 
   async startGameRoom(code: string): Promise<void> {
     const gameRoom = await this.gameRoomRepository.findOne({
-      where: { code: code }
+      where: { code: code },
     });
 
-    if (!gameRoom) {}
+    if (!gameRoom) {
+    }
 
     gameRoom.status = GameRoomStatus.InProgress;
 
@@ -116,5 +120,43 @@ export class GameRoomService {
     }
 
     return code;
+  }
+
+  getPlayableCards(playerHand: string[], playedCard: string) {
+    let playableCards: string[] = [];
+
+    if (playerHand.length > 0) {
+      playerHand.forEach((card) => {
+        let playableCard = this.getPlayableCard(card, playedCard);
+  
+        if (playableCard) {
+          playableCards.push(playableCard);
+        }
+      });
+    }
+
+    return playableCards;
+  }
+
+  getPlayableCard(card: string, playedCard: string) {
+    let playedCardRank = this.getCardRank(playedCard);
+    let playedCardColor = this.getCardColor(playedCard);
+
+    let cardRank = this.getCardRank(card);
+    let cardColor = this.getCardColor(card);
+
+    if (cardRank === playedCardRank || cardColor === playedCardColor || ['changeColor', 'draw4'].includes(cardRank)) {
+      return card;
+    }
+
+    return undefined;
+  }
+
+  private getCardRank(card: string): string {
+    return card.slice(0, -1);
+  }
+
+  private getCardColor(card: string): string {
+    return card.slice(-1);
   }
 }

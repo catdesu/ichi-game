@@ -116,7 +116,7 @@
     <div id="player">
       (You) ({{ playerHand.length }})
       <div class="player_hand">
-        <div *ngFor="let card of playerHand; let i = index" class="card" [style]="getCardStyle(card)">
+        <div *ngFor="let card of playerHand; let i = index" class="card" [style]="getCardStyle(card)" (click)="playCard(card)">
           <div class="bckg"></div>
         </div>
       </div>
@@ -139,7 +139,7 @@
         </div>
       </div>
       <div id="discard_pile">
-        <div class="card top-card" [style]="getCardStyle(playedCard)">
+        <div class="card top-card" [style]="getTopCardStyle(playedCard)">
           <div class="bckg"></div>
         </div>
         <div class="card pile">
