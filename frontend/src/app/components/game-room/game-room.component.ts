@@ -105,6 +105,8 @@ export class GameRoomComponent implements OnInit {
   }
 
   playCard(cardName: string) {
-    console.log(cardName);
+    if (!this.playableCards.includes(cardName)) {
+      
+    }
   }
 }

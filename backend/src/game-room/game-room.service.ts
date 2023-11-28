@@ -138,7 +138,7 @@ export class GameRoomService {
     return playableCards;
   }
 
-  getPlayableCard(card: string, playedCard: string) {
+  getPlayableCard(card: string, playedCard: string): string|undefined {
     let playedCardRank = this.getCardRank(playedCard);
     let playedCardColor = this.getCardColor(playedCard);
 

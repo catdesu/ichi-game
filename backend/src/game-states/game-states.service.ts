@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GameState } from './entities/game-state.entity';
 import { Repository } from 'typeorm';
 import { CreateGameStateDto } from './dto/create-game-state.dto';
+import { UpdateGameStateDto } from './dto/update-game-state.dto';
 
 @Injectable()
 export class GameStatesService {
@@ -35,5 +36,9 @@ export class GameStatesService {
     } catch (error) {
       throw new BadRequestException('Failed to create game state.');
     }
+  }
+
+  async update(updateGameStateDto: UpdateGameStateDto) {
+    
   }
 }

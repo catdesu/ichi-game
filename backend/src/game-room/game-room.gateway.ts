@@ -338,6 +338,26 @@ export class GameRoomGateway {
   }
 
   @UseGuards(WsJwtGuard)
+  @SubscribeMessage('play-card')
+  async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
+    const token = client.handshake.auth.token;
+    const result = this.jwtService.decode(token);
+    const player = await this.gameRoomService.GetSessionPlayer(result);
+
+    if (player.gameRoom !== null) {
+      const gameState = await this.gameStatesService.findOne(player.gameRoom.id);
+
+      if (gameState.fk_current_player_id === player.id) {
+        let playedCard = gameState.discard_pile.toString();
+
+        if (this.gameRoomService.getPlayableCard(data.card, playedCard)) {
+          // todo: play card here and manage discardPile as an array.
+        }
+      }
+    }
+  }
+
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('finished')
   handleGameFinished(client: Socket, data: { code: string }) {}
 }

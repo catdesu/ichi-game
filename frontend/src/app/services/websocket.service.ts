@@ -141,5 +141,6 @@ export class WebsocketService {
     this.playedCard.next('');
     this.playerCards.next([]);
     this.started.next(false);
+    this.playableCards.next([]);
   }
 }
