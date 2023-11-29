@@ -8,11 +8,11 @@ export class CreateGameStateDto {
   fk_current_player_id: number;
 
   @IsString()
-  deck: string;
+  deck: string[];
 
   @IsString()
-  discard_pile: string;
+  discard_pile: string[];
 
   @IsString()
-  turn_order: string;
+  turn_order: { username: string, isPlayerTurn: boolean }[];
 }

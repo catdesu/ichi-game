@@ -92,8 +92,8 @@ export class GameRoomGateway {
         if (isInProgress) {
           const gameState = await this.gameStatesService.findOne(player.fk_game_room_id);
 
-          discardPile = gameState.discard_pile.toString();
-          handCards = player.hand_cards.toString().split(',');
+          discardPile = gameState.discard_pile.shift();
+          handCards = player.hand_cards;
         }
   
         this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
@@ -226,7 +226,7 @@ export class GameRoomGateway {
     session.players.forEach((player) => {
       client
         .to(player.id)
-        .emit('join-response', { status: 'success', code: code, players: session.players });
+        .emit('join-response', { status: 'success', code: code, players: session.players, joined: true, });
     });
 
     client.emit('join-response', {
@@ -272,22 +272,26 @@ export class GameRoomGateway {
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
       const shuffleDeck: string[] = [...packOfCards.sort(() => Math.random() - 0.5)];
-      const turnOrder: string[] = [];
       const discardPile: string[] = [];
-      const cardsToSkip: string[] = ['changeColor', 'draw4'];
+      const cardsToSkip: string[] = ['changeColorW', 'draw4W'];
       const playerCards: { username: string, cardsCount: number }[] = [];
+
+      const turnOrder = [...session.players]
+      .sort(() => Math.random() - 0.5)
+      .map((player, index) => ({
+        username: player.username,
+        isPlayerTurn: index === 0,
+      }));
 
       session.players.forEach((thisPlayer) => {
         let playerHand: string[] = [];
-
-        turnOrder.push(thisPlayer.username);
 
         for (let i = 0; i < 7; i++) {
           const drawnCard = shuffleDeck.pop();
           playerHand.push(drawnCard);
         }
 
-        const updatedPlayer: UpdatePlayerDto = { hand_cards: JSON.stringify(playerHand) };
+        const updatedPlayer: UpdatePlayerDto = { hand_cards: playerHand };
         this.playerService.updateByUsername(thisPlayer.username, updatedPlayer);
         thisPlayer.handCards = playerHand;
         playerCards.push({
@@ -310,14 +314,14 @@ export class GameRoomGateway {
       session.deck = shuffleDeck;
       session.discardPile = discardPile;
 
-      const player = await this.playerService.findOneByUsername(turnOrder[0]);
+      const player = await this.playerService.findOneByUsername(turnOrder[0].username);
   
       const createGameStateDto: CreateGameStateDto = { 
         fk_game_room_id: player.fk_game_room_id,
         fk_current_player_id: player.id,
-        deck: JSON.stringify(shuffleDeck),
-        discard_pile: JSON.stringify(discardPile),
-        turn_order: JSON.stringify(turnOrder),
+        deck: shuffleDeck,
+        discard_pile: discardPile,
+        turn_order: turnOrder,
       };
 
       this.gameStatesService.create(createGameStateDto);
@@ -325,6 +329,7 @@ export class GameRoomGateway {
 
       session.players.forEach((thisPlayer) => {
         const playableCards = this.gameRoomService.getPlayableCards(thisPlayer.handCards, firstCardPlayed);
+
         const otherPlayers = playerCards.filter((player) => player.username !== thisPlayer.username);
         const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: otherPlayers, playable_cards: playableCards };
 

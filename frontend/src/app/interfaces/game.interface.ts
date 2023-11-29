@@ -3,4 +3,5 @@ export interface GameInterface {
   hand_cards: string[];
   played_card: string;
   player_cards: { username: string; cardsCount: number }[];
+  playable_cards: string[];
 }

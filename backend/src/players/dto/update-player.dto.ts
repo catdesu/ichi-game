@@ -7,5 +7,5 @@ export class UpdatePlayerDto {
   
   @IsString()
   @IsOptional()
-  hand_cards?: string;
+  hand_cards?: string[];
 }

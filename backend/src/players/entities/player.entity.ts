@@ -23,7 +23,7 @@ export class Player {
   password: string;
 
   @Column({ nullable: true, type: 'json' })
-  hand_cards: string;
+  hand_cards: string[];
 
   @OneToOne(() => GameState)
   gameState: GameState;

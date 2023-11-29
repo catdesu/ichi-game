@@ -14,13 +14,13 @@ export class GameState {
   fk_current_player_id: number;
 
   @Column({ type: 'json' })
-  deck: string;
+  deck: string[];
   
   @Column({ type: 'json' })
-  discard_pile: string;
+  discard_pile: string[];
   
   @Column({ type: 'json' })
-  turn_order: string;
+  turn_order: { username: string, isPlayerTurn: boolean }[];
 
   @OneToOne(() => GameRoom)
   gameRoom: GameRoom;

@@ -129,6 +129,7 @@ export class WebsocketService {
     this.playerHand.next(data.hand_cards);
     this.playedCard.next(data.played_card);
     this.playerCards.next(data.player_cards);
+    this.playableCards.next(data.playable_cards);
     this.started.next(data.started);
   }
 
