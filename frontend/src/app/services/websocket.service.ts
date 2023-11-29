@@ -144,8 +144,16 @@ export class WebsocketService {
   }
 
   handlePlayCard(data: any) {
-    this.playerHand.next(data.hand_cards);
+    if (data.hand_cards) {
+      this.playerHand.next(data.hand_cards);
+    }
+
+    if (data.player_cards) {
+      this.playerCards.next(data.player_cards);
+    }
+
     this.playedCard.next(data.played_card);
+    this.playableCards.next(data.playable_cards);
     this.turnOrder.next(data.turnOrder);
   }
 

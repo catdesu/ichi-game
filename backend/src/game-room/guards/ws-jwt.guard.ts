@@ -17,7 +17,6 @@ export class WsJwtGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const client = context.switchToWs().getClient();
     const token = client.handshake.auth.token;
-    console.log(token);
 
     if (!token) {
       throw new UnauthorizedException();
@@ -25,7 +24,6 @@ export class WsJwtGuard implements CanActivate {
 
     try {
       const decoded = this.jwtService.verify(token);
-      console.log(decoded);
       return true;
     } catch (error) {
       if (error instanceof TokenExpiredError) {
