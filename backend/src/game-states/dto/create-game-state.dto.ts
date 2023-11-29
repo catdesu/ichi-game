@@ -4,9 +4,6 @@ export class CreateGameStateDto {
   @IsNumber()
   fk_game_room_id: number;
 
-  @IsNumber()
-  fk_current_player_id: number;
-
   @IsString()
   deck: string[];
 

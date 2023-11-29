@@ -96,8 +96,8 @@ export class GameRoomComponent implements OnInit {
   }
 
   playCard(cardName: string) {
-    if (!this.playableCards.includes(cardName)) {
-      
+    if (this.playableCards.includes(cardName)) {
+      this.websocketService.playCard(cardName);
     }
   }
 }

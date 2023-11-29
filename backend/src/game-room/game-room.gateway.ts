@@ -18,6 +18,7 @@ import { PlayersService } from 'src/players/players.service';
 import { UpdatePlayerDto } from 'src/players/dto/update-player.dto';
 import { CreateGameStateDto } from 'src/game-states/dto/create-game-state.dto';
 import { GameStatesService } from 'src/game-states/game-states.service';
+import { UpdateGameStateDto } from 'src/game-states/dto/update-game-state.dto';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -321,7 +322,6 @@ export class GameRoomGateway {
   
       const createGameStateDto: CreateGameStateDto = { 
         fk_game_room_id: player.fk_game_room_id,
-        fk_current_player_id: player.id,
         deck: shuffleDeck,
         discard_pile: discardPile,
         turn_order: turnOrder,
@@ -353,13 +353,49 @@ export class GameRoomGateway {
     const player = await this.gameRoomService.GetSessionPlayer(result);
 
     if (player.gameRoom !== null) {
+      const session = this.sessions.get(player.gameRoom.code);
       const gameState = await this.gameStatesService.findOne(player.gameRoom.id);
 
-      if (gameState.fk_current_player_id === player.id) {
-        let playedCard = gameState.discard_pile.toString();
+      if (gameState) {
+        const isPlayerTurn = gameState.turn_order.some(thisPlayer => thisPlayer.username === player.username && thisPlayer.isPlayerTurn);
+        console.log(gameState.turn_order, player.username, isPlayerTurn);
+        if (isPlayerTurn) {
+          let playedCard = gameState.discard_pile[gameState.discard_pile.length - 1];
+  
+          if (this.gameRoomService.getPlayableCard(data.card, playedCard)) {
+            // todo: play card here, effect of the card and turnOrder update
+            const currentPlayerIndex = gameState.turn_order.findIndex(player => player.isPlayerTurn);
+            const nextPlayerIndex = (currentPlayerIndex + 1) % gameState.turn_order.length;
 
-        if (this.gameRoomService.getPlayableCard(data.card, playedCard)) {
-          // todo: play card here and manage discardPile as an array.
+            gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
+            gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+            
+            gameState.discard_pile.unshift(data.card);
+
+            const updateGameStateDto: UpdateGameStateDto = {
+              discard_pile: gameState.discard_pile,
+              turn_order: gameState.turn_order
+            };
+
+            const newGameState = await this.gameStatesService.update(gameState.id, updateGameStateDto);
+
+            session.players.forEach((thisPlayer) => {
+              if (newGameState) {
+                const playerSession = {
+                  status: 'success',
+                  hand_cards: thisPlayer.handCards,
+                  played_card: data.card,
+                  turnOrder: newGameState.turn_order,
+                };
+      
+                if (client.id === thisPlayer.id) {
+                  client.emit('play-card-response', playerSession);
+                } else {
+                  client.to(thisPlayer.id).emit('play-card-response', playerSession);
+                }
+              }
+            })
+          }
         }
       }
     }

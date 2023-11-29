@@ -10,9 +10,6 @@ export class GameState {
   @Column()
   fk_game_room_id: number;
 
-  @Column()
-  fk_current_player_id: number;
-
   @Column({ type: 'json' })
   deck: string[];
   
