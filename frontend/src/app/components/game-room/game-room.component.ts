@@ -17,6 +17,7 @@ export class GameRoomComponent implements OnInit {
       Validators.maxLength(6),
     ]),
   });
+  public username: string = '';
   public playerPos = ['player_top', 'player_left', 'player_right'];
   public joined: boolean = false;
   public started: boolean = false;
@@ -26,11 +27,14 @@ export class GameRoomComponent implements OnInit {
   public playerCards: { username: string; cardsCount: number }[] = [];
   public playedCard: string = '';
   public playableCards: string[] = [];
+  public turnOrder: { username: string; isPlayerTurn: boolean }[] = [];
 
   constructor(private readonly websocketService: WebsocketService, private readonly jwtService: JwtService) {}
 
   ngOnInit(): void {
     this.websocketService.connect();
+
+    this.username = this.jwtService.getUsername()!;
 
     this.websocketService.joined.subscribe((joined) => {
       this.joined = joined;
@@ -63,6 +67,10 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.playableCards.subscribe((playableCards) => {
       this.playableCards = playableCards;
     });
+    
+    this.websocketService.turnOrder.subscribe((turnOrder) => {
+      this.turnOrder = turnOrder;
+    });
   }
 
   createGame() {
@@ -85,23 +93,6 @@ export class GameRoomComponent implements OnInit {
 
   startGame() {
     this.websocketService.startGame();
-  }
-
-  getCardStyle(cardName: string): object {
-    const isPlayable = this.playableCards.includes(cardName);
-
-    return {
-      'background': `url("../../../assets/images/cards-front/${cardName}.png") center/cover`,
-      'color': 'transparent',
-      'filter': isPlayable ? 'none' : 'brightness(50%)',
-    };
-  }
-  
-  getTopCardStyle(cardName: string): object {
-    return {
-      'background': `url("../../../assets/images/cards-front/${cardName}.png") center/cover`,
-      'color': 'transparent',
-    };
   }
 
   playCard(cardName: string) {

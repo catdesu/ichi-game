@@ -4,4 +4,5 @@ export interface GameInterface {
   played_card: string;
   player_cards: { username: string; cardsCount: number }[];
   playable_cards: string[];
+  turnOrder: { username: string, isPlayerTurn: boolean }[];
 }

@@ -17,6 +17,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { MenuBarComponent } from './components/menu-bar/menu-bar.component';
 import { MenubarModule } from 'primeng/menubar';
 import { TableModule } from 'primeng/table';
+import { CardStylePipe } from './pipes/card-style.pipe';
+import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,9 @@ import { TableModule } from 'primeng/table';
     GameRoomComponent,
     LoginComponent,
     RegisterComponent,
-    MenuBarComponent
+    MenuBarComponent,
+    CardStylePipe,
+    PlayerTurnStylePipe
   ],
   imports: [
     BrowserModule,

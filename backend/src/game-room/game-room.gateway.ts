@@ -47,6 +47,7 @@ export class GameRoomGateway {
     let discardPile = '';
     let playableCards = [];
     let otherPlayers = [];
+    let turnOrder = [];
 
     if (player.gameRoom !== null) {
       if (player.gameRoom.status !== GameRoomStatus.Completed) {
@@ -93,6 +94,7 @@ export class GameRoomGateway {
           const gameState = await this.gameStatesService.findOne(player.fk_game_room_id);
 
           discardPile = gameState.discard_pile.shift();
+          turnOrder = gameState.turn_order;
           handCards = player.hand_cards;
         }
   
@@ -111,7 +113,8 @@ export class GameRoomGateway {
             hand_cards: thisPlayer.handCards,
             played_card: discardPile,
             player_cards: otherPlayers, 
-            playable_cards: playableCards
+            playable_cards: playableCards,
+            turnOrder: turnOrder,
           };
 
           if (client.id === thisPlayer.id) {
@@ -331,7 +334,7 @@ export class GameRoomGateway {
         const playableCards = this.gameRoomService.getPlayableCards(thisPlayer.handCards, firstCardPlayed);
 
         const otherPlayers = playerCards.filter((player) => player.username !== thisPlayer.username);
-        const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: otherPlayers, playable_cards: playableCards };
+        const playerSession = { started: true, hand_cards: thisPlayer.handCards, played_card: firstCardPlayed, player_cards: otherPlayers, playable_cards: playableCards, turnOrder: turnOrder };
 
         if (client.id === thisPlayer.id) {
           client.emit('start-response', playerSession);
