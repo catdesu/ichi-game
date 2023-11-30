@@ -388,7 +388,7 @@ export class GameRoomGateway {
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('play-card')
-  async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
+  async handlePlayCard(client: Socket, data: { card: string, chosenColor?: string }): Promise<void> {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
     const player = await this.gameRoomService.GetSessionPlayer(result);
@@ -411,9 +411,14 @@ export class GameRoomGateway {
           if (this.gameRoomService.getPlayableCard(data.card, playedCard)) {
             const cardEffect = this.gameRoomService.getCardEffect(data.card);
 
-            if (cardEffect.changeOrder) {
+            if (cardEffect === this.gameRoomService.reverseTurnOrder) {
               gameState.is_forward_direction = !gameState.is_forward_direction;
               console.log(gameState.is_forward_direction);
+            } else if (cardEffect === this.gameRoomService.changeColor) {
+              if (data.chosenColor) {
+                // TODO: manage the color change and playability of cards
+                console.log(data.chosenColor);
+              }
             }
 
             const currentPlayerIndex = gameState.turn_order.findIndex(
@@ -509,6 +514,7 @@ export class GameRoomGateway {
     }
   }
 
+  // TODO: Manage draw only one card per turn
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('draw-card')
   async handleDrawCard(client: Socket): Promise<void> {
@@ -530,7 +536,6 @@ export class GameRoomGateway {
 
         if (isPlayerTurn) {
           let playedCard = gameState.discard_pile[0];
-          const playableCards = this.gameRoomService.getPlayableCards(player.hand_cards, playedCard);
 
           const drawnCard = gameState.deck.pop();
 
@@ -563,6 +568,7 @@ export class GameRoomGateway {
           };
 
           const newPlayer = await this.playerService.updateByUsername(player.username, updatePlayerDto);
+          const playableCards = this.gameRoomService.getPlayableCards(newPlayer.hand_cards, playedCard);
 
           session.players.find(
             (player) => player.username === newPlayer.username,
@@ -582,10 +588,9 @@ export class GameRoomGateway {
                 player_cards: otherPlayers,
               };
 
-              console.log(newPlayer.username, newPlayer.hand_cards);
-
               if (client.id === thisPlayer.id) {
                 playerSession.hand_cards = newPlayer.hand_cards;
+                playerSession.playable_cards = playableCards;
 
                 client.emit('draw-card-response', playerSession);
               } else {

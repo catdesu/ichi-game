@@ -1,0 +1,17 @@
+/* color-dialog.component.css */
+.color-options {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.color-option {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.color-option:hover {
+  background-color: #f0f0f0;
+}

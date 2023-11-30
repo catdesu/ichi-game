@@ -19,6 +19,8 @@ import { MenubarModule } from 'primeng/menubar';
 import { TableModule } from 'primeng/table';
 import { CardStylePipe } from './pipes/card-style.pipe';
 import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
+import { ColorDialogComponent } from './components/color-dialog/color-dialog.component';
+import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 
 @NgModule({
   declarations: [
@@ -28,7 +30,8 @@ import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
     RegisterComponent,
     MenuBarComponent,
     CardStylePipe,
-    PlayerTurnStylePipe
+    PlayerTurnStylePipe,
+    ColorDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -47,9 +50,10 @@ import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
     InputTextModule,
     BrowserAnimationsModule,
     MenubarModule,
-    TableModule
+    TableModule,
+    DynamicDialogModule
   ],
-  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }, DialogService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

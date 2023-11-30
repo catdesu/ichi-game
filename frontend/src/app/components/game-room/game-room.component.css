@@ -29,30 +29,6 @@
   position: relative;
 }
 
-.card .center-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 3em;
-}
-
-/* BLUE CARDS */
-
-/* GREEN CARDS */
-
-/* RED CARDS */
-
-/* YELLOW CARDS */
-
-.card.black {
-  color: #1f1b18;
-}
-
-.card.black .bckg {
-  background-color: #1f1b18;
-}
-
 .card.turned:hover {
   cursor: default;
 }
@@ -63,7 +39,7 @@
 }
 
 .card.turned .bckg::before {
-  background-color: transparent; /* Set the background color to transparent */
+  background-color: transparent;
 }
 
 .game-field #piles_area {
@@ -108,11 +84,6 @@
 
 #draw_pile .card.pile:hover {
   transform: none;
-}
-
-#draw_pile .card.top-card .OG {
-  /* background: url("../../../assets/images/cards-front/0G.png") center/cover; */
-  color: transparent;
 }
 
 #draw_pile .card.top-card {
@@ -190,35 +161,17 @@
 }
 
 .player_hand .card {
-  position: absolute;
+  position: relative;
 }
 
-.player_hand .card:nth-child(1) {
-  left: 2.2em;
+#player .player_hand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.player_hand .card:nth-child(2) {
-  left: 4.4em;
-}
-
-.player_hand .card:nth-child(3) {
-  left: 6.600000000000001em;
-}
-
-.player_hand .card:nth-child(4) {
-  left: 8.8em;
-}
-
-.player_hand .card:nth-child(5) {
-  left: 11em;
-}
-
-.player_hand .card:nth-child(6) {
-  left: 13.200000000000001em;
-}
-
-.player_hand .card:nth-child(7) {
-  left: 15.400000000000002em;
+.player_hand .card {
+  margin-right: -3em;
 }
 
 #player .player_hand .card {

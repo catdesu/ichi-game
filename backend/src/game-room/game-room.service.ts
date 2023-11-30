@@ -11,6 +11,12 @@ import { Player } from 'src/players/entities/player.entity';
 @Injectable()
 export class GameRoomService {
   private gameRooms = new Map<string, number[]>();
+  public default = { draw: 0, changeColor: false, skipTurn: false, changeOrder: false };
+  public drawFour = { draw: 4, changeColor: true, skipTurn: true, changeOrder: false };
+  public drawTwo = { draw: 2, changeColor: false, skipTurn: true, changeOrder: false };
+  public changeColor = { draw: 0, changeColor: true, skipTurn: false, changeOrder: false };
+  public skipTurn = { draw: 0, changeColor: false, skipTurn: true, changeOrder: false };
+  public reverseTurnOrder = { draw: 0, changeColor: false, skipTurn: false, changeOrder: true };
 
   constructor(
     @InjectRepository(GameRoom)
@@ -157,22 +163,22 @@ export class GameRoomService {
 
     switch(cardRank) {
       case 'draw4':
-        return { draw: 4, changeColor: true, skipTurn: true, changeOrder: false };
+        return this.drawFour;
 
       case 'draw2':
-        return { draw: 2, changeColor: false, skipTurn: true, changeOrder: false };
+        return this.drawTwo;
 
       case 'changeColor':
-        return { draw: 0, changeColor: true, skipTurn: false, changeOrder: false };
+        return this.changeColor;
 
       case 'skip':
-        return { draw: 0, changeColor: false, skipTurn: true, changeOrder: false };
+        return this.skipTurn;
 
       case 'reverse':
-        return { draw: 0, changeColor: false, skipTurn: false, changeOrder: true };
+        return this.reverseTurnOrder;
 
       default:
-        return { draw: 0, changeColor: false, skipTurn: false, changeOrder: false };
+        return this.default;
     }
   }
 

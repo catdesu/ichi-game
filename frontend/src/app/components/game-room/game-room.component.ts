@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { PlayerInterface } from 'src/app/interfaces/player.interface';
+import { ColorDialogService } from 'src/app/services/color-dialog.service';
 import { JwtService } from 'src/app/services/jwt.service';
 import { WebsocketService } from 'src/app/services/websocket.service';
 
 @Component({
   selector: 'app-game-room',
   templateUrl: './game-room.component.html',
-  styleUrls: ['./game-room.component.css']
+  styleUrls: ['./game-room.component.css'],
 })
 export class GameRoomComponent implements OnInit {
   joinGameForm: FormGroup = new FormGroup({
@@ -29,7 +30,11 @@ export class GameRoomComponent implements OnInit {
   public playableCards: string[] = [];
   public turnOrder: { username: string; isPlayerTurn: boolean }[] = [];
 
-  constructor(private readonly websocketService: WebsocketService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly websocketService: WebsocketService,
+    private readonly jwtService: JwtService,
+    private readonly colorDialogService: ColorDialogService
+  ) {}
 
   ngOnInit(): void {
     this.websocketService.connect();
@@ -43,11 +48,11 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.code.subscribe((code) => {
       this.code = code;
     });
-    
+
     this.websocketService.players.subscribe((players) => {
       this.players = players;
     });
-    
+
     this.websocketService.started.subscribe((started) => {
       this.started = started;
     });
@@ -63,11 +68,11 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.playedCard.subscribe((playedCard) => {
       this.playedCard = playedCard;
     });
-    
+
     this.websocketService.playableCards.subscribe((playableCards) => {
       this.playableCards = playableCards;
     });
-    
+
     this.websocketService.turnOrder.subscribe((turnOrder) => {
       this.turnOrder = turnOrder;
     });
@@ -95,14 +100,20 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.startGame();
   }
 
-  playCard(cardName: string) {
+  async playCard(cardName: string) {
     if (this.playableCards.includes(cardName)) {
-      this.websocketService.playCard(cardName);
+      if (cardName === 'changeColorW') {
+        // todo: make a popup to choose a color
+        const color = await this.colorDialogService.openColorDialog();
+        this.websocketService.playCard(cardName, color);
+      } else {
+        this.websocketService.playCard(cardName);
+      }
     }
   }
 
   drawCard() {
-    if (this.turnOrder.find(player => player.username === this.username)?.isPlayerTurn) {
+    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
       this.websocketService.drawCard();
     }
   }

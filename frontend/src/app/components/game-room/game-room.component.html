@@ -124,7 +124,7 @@
     <div *ngFor="let player of playerCards; let i = index" [id]="playerPos[i]" [style]="player.username| playerTurnStyle: turnOrder">
       {{ player.username }} ({{ player.cardsCount }})
       <div class="player_hand">
-        <div *ngFor="let index of [].constructor(player.cardsCount)" class="card turned">
+        <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)" class="card turned">
           <div class="bckg"></div>
         </div>
       </div>

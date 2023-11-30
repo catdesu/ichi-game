@@ -138,10 +138,16 @@ export class WebsocketService {
     this.started.next(data.started);
   }
 
-  playCard(cardName: string) {
-    this.socket?.emit('play-card', {
+  playCard(cardName: string, chosenColor?: string) {
+    const playCard: any = {
       card: cardName,
-    });
+    }
+
+    if (chosenColor) {
+      playCard.chosenColor = chosenColor;
+    };
+
+    this.socket?.emit('play-card', playCard);
   }
 
   handlePlayCard(data: any) {
@@ -165,6 +171,10 @@ export class WebsocketService {
   handleDrawCard(data: any) {
     if (data.hand_cards) {
       this.playerHand.next(data.hand_cards);
+    }
+
+    if (data.playable_cards) {
+      this.playableCards.next(data.playable_cards);
     }
 
     this.playerCards.next(data.player_cards);
