@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsNumber, IsString } from "class-validator";
 
 export class CreateGameStateDto {
   @IsNumber()
@@ -12,4 +12,7 @@ export class CreateGameStateDto {
 
   @IsString()
   turn_order: { username: string, isPlayerTurn: boolean }[];
+  
+  @IsBoolean()
+  is_forward_direction: boolean;
 }

@@ -18,6 +18,9 @@ export class GameState {
   
   @Column({ type: 'json' })
   turn_order: { username: string, isPlayerTurn: boolean }[];
+  
+  @Column()
+  is_forward_direction: boolean;
 
   @OneToOne(() => GameRoom)
   gameRoom: GameRoom;

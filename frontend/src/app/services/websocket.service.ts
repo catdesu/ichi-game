@@ -56,6 +56,7 @@ export class WebsocketService {
     this.socket.on('leave-response', (data) => this.handleLeaveGame(data));
     this.socket.on('start-response', (data) => this.handleStartGame(data));
     this.socket.on('play-card-response', (data) => this.handlePlayCard(data));
+    this.socket.on('draw-card-response', (data) => this.handleDrawCard(data));
   }
 
   createGame() {
@@ -157,6 +158,18 @@ export class WebsocketService {
     this.turnOrder.next(data.turnOrder);
   }
 
+  drawCard() {
+    this.socket?.emit('draw-card');
+  }
+
+  handleDrawCard(data: any) {
+    if (data.hand_cards) {
+      this.playerHand.next(data.hand_cards);
+    }
+
+    this.playerCards.next(data.player_cards);
+  }
+
   resetState() {
     this.code.next('');
     this.players.next([]);
@@ -167,5 +180,6 @@ export class WebsocketService {
     this.playerCards.next([]);
     this.started.next(false);
     this.playableCards.next([]);
+    this.turnOrder.next([]);
   }
 }

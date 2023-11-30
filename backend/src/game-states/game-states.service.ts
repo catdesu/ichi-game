@@ -12,7 +12,7 @@ export class GameStatesService {
     private readonly gameStateRepository: Repository<GameState>,
   ) {}
 
-  async findOne(gameRoomId: number): Promise<GameState> {
+  async findOneByGameRoomId(gameRoomId: number): Promise<GameState> {
     const gameState = await this.gameStateRepository.findOne({
       where: { fk_game_room_id: gameRoomId }
     });
@@ -29,6 +29,7 @@ export class GameStatesService {
     gameState.deck = createGameStateDto.deck;
     gameState.discard_pile = createGameStateDto.discard_pile;
     gameState.turn_order = createGameStateDto.turn_order;
+    gameState.is_forward_direction = createGameStateDto.is_forward_direction;
 
     try {
       return await this.gameStateRepository.save(gameState);
@@ -47,6 +48,7 @@ export class GameStatesService {
     gameState.deck = updateGameStateDto.deck;
     gameState.discard_pile = updateGameStateDto.discard_pile;
     gameState.turn_order = updateGameStateDto.turn_order;
+    gameState.is_forward_direction = updateGameStateDto.is_forward_direction;
 
     try {
       return await this.gameStateRepository.save(gameState);

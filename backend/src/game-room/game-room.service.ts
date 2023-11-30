@@ -152,6 +152,30 @@ export class GameRoomService {
     return undefined;
   }
 
+  getCardEffect(card: string): { draw: number, changeColor: boolean, skipTurn: boolean, changeOrder: boolean } {
+    let cardRank = this.getCardRank(card);
+
+    switch(cardRank) {
+      case 'draw4':
+        return { draw: 4, changeColor: true, skipTurn: true, changeOrder: false };
+
+      case 'draw2':
+        return { draw: 2, changeColor: false, skipTurn: true, changeOrder: false };
+
+      case 'changeColor':
+        return { draw: 0, changeColor: true, skipTurn: false, changeOrder: false };
+
+      case 'skip':
+        return { draw: 0, changeColor: false, skipTurn: true, changeOrder: false };
+
+      case 'reverse':
+        return { draw: 0, changeColor: false, skipTurn: false, changeOrder: true };
+
+      default:
+        return { draw: 0, changeColor: false, skipTurn: false, changeOrder: false };
+    }
+  }
+
   private getCardRank(card: string): string {
     return card.slice(0, -1);
   }

@@ -100,4 +100,10 @@ export class GameRoomComponent implements OnInit {
       this.websocketService.playCard(cardName);
     }
   }
+
+  drawCard() {
+    if (this.turnOrder.find(player => player.username === this.username)?.isPlayerTurn) {
+      this.websocketService.drawCard();
+    }
+  }
 }
