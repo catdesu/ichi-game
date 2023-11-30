@@ -101,13 +101,15 @@ export class GameRoomComponent implements OnInit {
   }
 
   async playCard(cardName: string) {
-    if (this.playableCards.includes(cardName)) {
-      if (cardName === 'changeColorW') {
-        // todo: make a popup to choose a color
-        const color = await this.colorDialogService.openColorDialog();
-        this.websocketService.playCard(cardName, color);
-      } else {
-        this.websocketService.playCard(cardName);
+    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
+      if (this.playableCards.includes(cardName)) {
+        if (['changeColorW', 'draw4W'].includes(cardName)) {
+          // todo: make a popup to choose a color
+          const color = await this.colorDialogService.openColorDialog();
+          this.websocketService.playCard(cardName, color);
+        } else {
+          this.websocketService.playCard(cardName);
+        }
       }
     }
   }
