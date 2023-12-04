@@ -388,7 +388,7 @@ export class GameRoomGateway {
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('play-card')
-  async handlePlayCard(client: Socket, data: { card: string, chosenColor?: string }): Promise<void> {
+  async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
     const player = await this.gameRoomService.GetSessionPlayer(result);
@@ -406,19 +406,21 @@ export class GameRoomGateway {
         );
 
         if (isPlayerTurn) {
-          let playedCard = gameState.discard_pile[0];
+          let topCard = gameState.discard_pile[0];
+          let playedCard = data.card;
 
-          if (this.gameRoomService.getPlayableCard(data.card, playedCard)) {
+          if (this.gameRoomService.getPlayableCard(data.card, topCard)) {
             const cardEffect = this.gameRoomService.getCardEffect(data.card);
 
             if (cardEffect === this.gameRoomService.reverseTurnOrder) {
               gameState.is_forward_direction = !gameState.is_forward_direction;
               console.log(gameState.is_forward_direction);
-            } else if (cardEffect === this.gameRoomService.changeColor) {
-              if (data.chosenColor) {
-                // TODO: manage the color change and playability of cards
-                console.log(data.chosenColor);
-              }
+            }
+
+            gameState.discard_pile.unshift(data.card);
+
+            if (['changeColor', 'draw4'].includes(data.card.slice(0, -1))) {
+              playedCard = data.card.slice(0, -1) + 'W';
             }
 
             const currentPlayerIndex = gameState.turn_order.findIndex(
@@ -441,7 +443,7 @@ export class GameRoomGateway {
             };
 
             const nextPlayerIndex = getNextPlayerIndex();
-            const cardToRemoveIndex = player.hand_cards.indexOf(data.card);
+            const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
 
             if (cardToRemoveIndex !== -1) {
               player.hand_cards.splice(cardToRemoveIndex, 1);
@@ -449,10 +451,6 @@ export class GameRoomGateway {
 
             gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
             gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
-
-            console.log(gameState.turn_order[nextPlayerIndex].username);
-
-            gameState.discard_pile.unshift(data.card);
 
             const updateGameStateDto: UpdateGameStateDto = {
               discard_pile: gameState.discard_pile,

@@ -105,8 +105,9 @@ export class GameRoomComponent implements OnInit {
       if (this.playableCards.includes(cardName)) {
         if (['changeColorW', 'draw4W'].includes(cardName)) {
           // todo: make a popup to choose a color
-          const color = await this.colorDialogService.openColorDialog();
-          this.websocketService.playCard(cardName, color);
+          const chosenColor = await this.colorDialogService.openColorDialog();
+          const newCardName = cardName.replace(/W$/, chosenColor);
+          this.websocketService.playCard(newCardName);
         } else {
           this.websocketService.playCard(cardName);
         }
