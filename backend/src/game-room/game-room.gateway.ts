@@ -533,13 +533,13 @@ export class GameRoomGateway {
         );
 
         if (isPlayerTurn) {
-          let playedCard = gameState.discard_pile[0];
+          let topCard = gameState.discard_pile[0];
 
           const drawnCard = gameState.deck.pop();
 
           if (gameState.deck.length === 0) {
             const newDeck = [...gameState.discard_pile];
-            const newDiscardPile = [playedCard];
+            const newDiscardPile = [topCard];
 
             newDeck.shift();
             newDeck.sort(() => Math.random() - 0.5);
@@ -566,7 +566,7 @@ export class GameRoomGateway {
           };
 
           const newPlayer = await this.playerService.updateByUsername(player.username, updatePlayerDto);
-          const playableCards = this.gameRoomService.getPlayableCards(newPlayer.hand_cards, playedCard);
+          const playableCards = this.gameRoomService.getPlayableCards(newPlayer.hand_cards, topCard);
 
           session.players.find(
             (player) => player.username === newPlayer.username,
