@@ -197,6 +197,16 @@ export class GameRoomService {
           gameState.turn_order.length;
   };
 
+  getDrawedCards(drawedNumber: number, gameState: GameState) {
+    let drawedCards = [];
+
+    for (let i = 0; i < drawedNumber; i++) {
+      drawedCards.push(gameState.deck.pop());
+    }
+
+    return drawedCards;
+  }
+
   private getCardRank(card: string): string {
     return card.slice(0, -1);
   }

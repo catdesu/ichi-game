@@ -413,9 +413,56 @@ export class GameRoomGateway {
           if (this.gameRoomService.getPlayableCard(data.card, topCard)) {
             const cardEffect = this.gameRoomService.getCardEffect(data.card);
 
-            if (cardEffect === this.gameRoomService.reverseTurnOrder) {
-              gameState.is_forward_direction = !gameState.is_forward_direction;
-              console.log(gameState.is_forward_direction);
+            const currentPlayerIndex = gameState.turn_order.findIndex(
+              (player) => player.isPlayerTurn,
+            );
+
+            const switchPlayerTurn = (currentIndex: number, nextIndex: number): void => {
+              gameState.turn_order[currentIndex].isPlayerTurn = false;
+              gameState.turn_order[currentIndex].hasDrawnThisTurn = false;
+              gameState.turn_order[nextIndex].isPlayerTurn = true;
+              gameState.turn_order[nextIndex].hasDrawnThisTurn = false;
+            };
+
+            const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
+
+            switch (cardEffect) {
+              case this.gameRoomService.changeColor:
+                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
+                break;
+
+              case this.gameRoomService.reverseTurnOrder:
+                gameState.is_forward_direction = !gameState.is_forward_direction;
+                break;
+
+              case this.gameRoomService.skipTurn:
+                const afterSkippedPlayerIndex = this.gameRoomService.getNextPlayerIndex(nextPlayerIndex, gameState);
+                switchPlayerTurn(currentPlayerIndex, afterSkippedPlayerIndex);
+                break;
+
+              case this.gameRoomService.drawTwo:
+                const drawTwoCards = this.gameRoomService.getDrawedCards(2, gameState);
+                const playerDrawTwo = await this.playerService.findOneByUsername(gameState.turn_order[nextPlayerIndex].username);
+                playerDrawTwo.hand_cards.push(...drawTwoCards);
+                const newPlayerDrawTwo = await this.playerService.updateByUsername(playerDrawTwo.username, playerDrawTwo);
+                const afterDrawTwoPlayerIndex = this.gameRoomService.getNextPlayerIndex(nextPlayerIndex, gameState);
+                session.players.find((thisPlayer) => thisPlayer.username === newPlayerDrawTwo.username).handCards = newPlayerDrawTwo.hand_cards;
+                switchPlayerTurn(currentPlayerIndex, afterDrawTwoPlayerIndex);
+                break;
+
+              case this.gameRoomService.drawFour:
+                const drawFourCards = this.gameRoomService.getDrawedCards(4, gameState);
+                const playerDrawFour = await this.playerService.findOneByUsername(gameState.turn_order[nextPlayerIndex].username);
+                playerDrawFour.hand_cards.push(...drawFourCards);
+                const newPlayerDrawFour = await this.playerService.updateByUsername(playerDrawFour.username, playerDrawFour);
+                await this.playerService.update(playerDrawFour.id, playerDrawFour);
+                session.players.find((thisPlayer) => thisPlayer.username === newPlayerDrawFour.username).handCards = newPlayerDrawFour.hand_cards;
+                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
+                break;
+
+              case this.gameRoomService.default:
+                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
+                break;
             }
 
             gameState.discard_pile.unshift(data.card);
@@ -424,24 +471,16 @@ export class GameRoomGateway {
               playedCard = data.card.slice(0, -1) + 'W';
             }
 
-            const currentPlayerIndex = gameState.turn_order.findIndex(
-              (player) => player.isPlayerTurn,
-            );
-            const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
             const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
 
             if (cardToRemoveIndex !== -1) {
               player.hand_cards.splice(cardToRemoveIndex, 1);
             }
 
-            gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
-            gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
-            gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
-            gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
-
             const updateGameStateDto: UpdateGameStateDto = {
               discard_pile: gameState.discard_pile,
               turn_order: gameState.turn_order,
+              deck: gameState.deck,
             };
 
             const updatePlayerDto: UpdatePlayerDto = {
@@ -487,6 +526,7 @@ export class GameRoomGateway {
 
                   client.emit('play-card-response', playerSession);
                 } else {
+                  playerSession.hand_cards = thisPlayer.handCards;
                   client
                     .to(thisPlayer.id)
                     .emit('play-card-response', playerSession);
