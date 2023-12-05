@@ -311,6 +311,7 @@ export class GameRoomGateway {
         .map((player, index) => ({
           username: player.username,
           isPlayerTurn: index === 0,
+          hasDrawnThisTurn: false,
         }));
 
       session.players.forEach((thisPlayer) => {
@@ -426,23 +427,7 @@ export class GameRoomGateway {
             const currentPlayerIndex = gameState.turn_order.findIndex(
               (player) => player.isPlayerTurn,
             );
-
-            // Function to get the next player index based on the direction
-            const getNextPlayerIndex = () => {
-              if (
-                gameState.turn_order.length === 2 &&
-                !gameState.is_forward_direction
-              ) {
-                return currentPlayerIndex; // Skip the player if there are only two players and the direction is reversed
-              }
-
-              return gameState.is_forward_direction
-                ? (currentPlayerIndex + 1) % gameState.turn_order.length
-                : (currentPlayerIndex - 1 + gameState.turn_order.length) %
-                    gameState.turn_order.length;
-            };
-
-            const nextPlayerIndex = getNextPlayerIndex();
+            const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
             const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
 
             if (cardToRemoveIndex !== -1) {
@@ -450,7 +435,9 @@ export class GameRoomGateway {
             }
 
             gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
+            gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
             gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+            gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
 
             const updateGameStateDto: UpdateGameStateDto = {
               discard_pile: gameState.discard_pile,
@@ -525,79 +512,98 @@ export class GameRoomGateway {
       const gameState = await this.gameStatesService.findOneByGameRoomId(
         player.gameRoom.id,
       );
+      let newGameState;
 
       if (gameState) {
-        const isPlayerTurn = gameState.turn_order.some(
+        const playerTurnOrderIndex  = gameState.turn_order.findIndex(
           (thisPlayer) =>
             thisPlayer.username === player.username && thisPlayer.isPlayerTurn,
         );
-
-        if (isPlayerTurn) {
+        if (playerTurnOrderIndex !== -1) {
+          const playerTurnOrder = gameState.turn_order[playerTurnOrderIndex];
           let topCard = gameState.discard_pile[0];
 
-          const drawnCard = gameState.deck.pop();
+          if (playerTurnOrder.isPlayerTurn && !playerTurnOrder.hasDrawnThisTurn) {
+            gameState.turn_order[playerTurnOrderIndex].hasDrawnThisTurn = true;
+  
+            const drawnCard = gameState.deck.pop();
 
-          if (gameState.deck.length === 0) {
-            const newDeck = [...gameState.discard_pile];
-            const newDiscardPile = [topCard];
-
-            newDeck.shift();
-            newDeck.sort(() => Math.random() - 0.5);
-
-            const updateGameStateDto: UpdateGameStateDto = {
-              deck: newDeck,
-              discard_pile: newDiscardPile,
+            const newPlayerHand = [...player.hand_cards];
+            newPlayerHand.push(drawnCard);
+  
+            const updatePlayerDto: UpdatePlayerDto = {
+              hand_cards: newPlayerHand,
             };
+  
+            const newPlayer = await this.playerService.updateByUsername(player.username, updatePlayerDto);
+            const playableCards = this.gameRoomService.getPlayableCards(newPlayer.hand_cards, topCard);
 
-            await this.gameStatesService.update(gameState.id, updateGameStateDto);
-          } else {
-            const updateGameStateDto: UpdateGameStateDto = {
-              deck: gameState.deck,
-            };
-
-            await this.gameStatesService.update(gameState.id, updateGameStateDto);
-          }
-
-          const newPlayerHand = [...player.hand_cards];
-          newPlayerHand.push(drawnCard);
-
-          const updatePlayerDto: UpdatePlayerDto = {
-            hand_cards: newPlayerHand,
-          };
-
-          const newPlayer = await this.playerService.updateByUsername(player.username, updatePlayerDto);
-          const playableCards = this.gameRoomService.getPlayableCards(newPlayer.hand_cards, topCard);
-
-          session.players.find(
-            (player) => player.username === newPlayer.username,
-          ).handCards = newPlayer.hand_cards;
-
-          session.players.forEach((thisPlayer) => {
-            if (newPlayer) {
-              let otherPlayers = session.players.map((otherPlayer) => ({
-                username: otherPlayer.username,
-                cardsCount: otherPlayer.handCards.length,
-              }));
-              otherPlayers = otherPlayers.filter(
-                (player) => player.username !== thisPlayer.username,
+            if (playableCards.length === 0) {
+              gameState.turn_order[playerTurnOrderIndex].hasDrawnThisTurn = false;
+              const currentPlayerIndex = gameState.turn_order.findIndex(
+                (player) => player.isPlayerTurn,
               );
-
-              let playerSession: any = {
-                player_cards: otherPlayers,
-              };
-
-              if (client.id === thisPlayer.id) {
-                playerSession.hand_cards = newPlayer.hand_cards;
-                playerSession.playable_cards = playableCards;
-
-                client.emit('draw-card-response', playerSession);
-              } else {
-                client
-                  .to(thisPlayer.id)
-                  .emit('draw-card-response', playerSession);
-              }
+              const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
+  
+              gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
+              gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
             }
-          });
+  
+            if (gameState.deck.length === 0) {
+              const newDeck = [...gameState.discard_pile];
+              const newDiscardPile = [topCard];
+  
+              newDeck.shift();
+              newDeck.sort(() => Math.random() - 0.5);
+  
+              const updateGameStateDto: UpdateGameStateDto = {
+                deck: newDeck,
+                discard_pile: newDiscardPile,
+                turn_order: gameState.turn_order,
+              };
+  
+              newGameState = await this.gameStatesService.update(gameState.id, updateGameStateDto);
+            } else {
+              const updateGameStateDto: UpdateGameStateDto = {
+                deck: gameState.deck,
+                turn_order: gameState.turn_order,
+              };
+  
+              newGameState = await this.gameStatesService.update(gameState.id, updateGameStateDto);
+            }
+  
+            session.players.find(
+              (player) => player.username === newPlayer.username,
+            ).handCards = newPlayer.hand_cards;
+  
+            session.players.forEach((thisPlayer) => {
+              if (newPlayer) {
+                let otherPlayers = session.players.map((otherPlayer) => ({
+                  username: otherPlayer.username,
+                  cardsCount: otherPlayer.handCards.length,
+                }));
+                otherPlayers = otherPlayers.filter(
+                  (player) => player.username !== thisPlayer.username,
+                );
+  
+                let playerSession: any = {
+                  player_cards: otherPlayers,
+                  turnOrder: newGameState.turn_order,
+                };
+  
+                if (client.id === thisPlayer.id) {
+                  playerSession.hand_cards = newPlayer.hand_cards;
+                  playerSession.playable_cards = playableCards;
+  
+                  client.emit('draw-card-response', playerSession);
+                } else {
+                  client
+                    .to(thisPlayer.id)
+                    .emit('draw-card-response', playerSession);
+                }
+              }
+            });
+          }
         }
       }
     }

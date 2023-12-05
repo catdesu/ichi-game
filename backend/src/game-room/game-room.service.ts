@@ -7,6 +7,7 @@ import { ROOM_MAX_PLAYERS } from 'src/constants';
 import { PlayersService } from 'src/players/players.service';
 import { UpdatePlayerDto } from 'src/players/dto/update-player.dto';
 import { Player } from 'src/players/entities/player.entity';
+import { GameState } from 'src/game-states/entities/game-state.entity';
 
 @Injectable()
 export class GameRoomService {
@@ -181,6 +182,20 @@ export class GameRoomService {
         return this.default;
     }
   }
+
+  getNextPlayerIndex(currentPlayerIndex: number, gameState: GameState) {
+    if (
+      gameState.turn_order.length === 2 &&
+      !gameState.is_forward_direction
+    ) {
+      return currentPlayerIndex;
+    }
+
+    return gameState.is_forward_direction
+      ? (currentPlayerIndex + 1) % gameState.turn_order.length
+      : (currentPlayerIndex - 1 + gameState.turn_order.length) %
+          gameState.turn_order.length;
+  };
 
   private getCardRank(card: string): string {
     return card.slice(0, -1);

@@ -28,7 +28,7 @@ export class GameRoomComponent implements OnInit {
   public playerCards: { username: string; cardsCount: number }[] = [];
   public playedCard: string = '';
   public playableCards: string[] = [];
-  public turnOrder: { username: string; isPlayerTurn: boolean }[] = [];
+  public turnOrder: { username: string; isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[] = [];
 
   constructor(
     private readonly websocketService: WebsocketService,

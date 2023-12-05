@@ -11,7 +11,7 @@ export class CreateGameStateDto {
   discard_pile: string[];
 
   @IsString()
-  turn_order: { username: string, isPlayerTurn: boolean }[];
+  turn_order: { username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[];
   
   @IsBoolean()
   is_forward_direction: boolean;

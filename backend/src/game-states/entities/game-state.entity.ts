@@ -17,7 +17,7 @@ export class GameState {
   discard_pile: string[];
   
   @Column({ type: 'json' })
-  turn_order: { username: string, isPlayerTurn: boolean }[];
+  turn_order: { username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[];
   
   @Column()
   is_forward_direction: boolean;

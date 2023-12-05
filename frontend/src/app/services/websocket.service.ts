@@ -26,7 +26,7 @@ export class WebsocketService {
   >([]);
   public playedCard = new BehaviorSubject<string>('');
   public playableCards = new BehaviorSubject<string[]>([]);
-  public turnOrder = new BehaviorSubject<{ username: string; isPlayerTurn: boolean }[]>([]);
+  public turnOrder = new BehaviorSubject<{ username: string; isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[]>([]);
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -177,6 +177,7 @@ export class WebsocketService {
       this.playableCards.next(data.playable_cards);
     }
 
+    this.turnOrder.next(data.turnOrder);
     this.playerCards.next(data.player_cards);
   }
 
