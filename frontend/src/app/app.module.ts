@@ -21,6 +21,7 @@ import { CardStylePipe } from './pipes/card-style.pipe';
 import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
 import { ColorDialogComponent } from './components/color-dialog/color-dialog.component';
 import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
+import { GetCardSpacingPipe } from './pipes/get-card-spacing.pipe';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
     MenuBarComponent,
     CardStylePipe,
     PlayerTurnStylePipe,
-    ColorDialogComponent
+    ColorDialogComponent,
+    GetCardSpacingPipe
   ],
   imports: [
     BrowserModule,

@@ -48,19 +48,19 @@
   transition: 200ms;
 }
 
-.game-field.yellow #piles_area {
+.game-field.Y #piles_area {
   background-color: rgba(252, 246, 4, 0.4);
 }
 
-.game-field.blue #piles_area {
+.game-field.B #piles_area {
   background-color: rgba(4, 147, 222, 0.4);
 }
 
-.game-field.red #piles_area {
+.game-field.R #piles_area {
   background-color: rgba(220, 37, 28, 0.4);
 }
 
-.game-field.green #piles_area {
+.game-field.G #piles_area {
   background-color: rgba(1, 141, 65, 0.4);
 }
 
@@ -161,17 +161,7 @@
 }
 
 .player_hand .card {
-  position: relative;
-}
-
-#player .player_hand {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.player_hand .card {
-  margin-right: -3em;
+  position: absolute;
 }
 
 #player .player_hand .card {
@@ -212,4 +202,32 @@
 
 .card.move-to-deck {
   animation: moveCardToDeck 0.5s ease-in-out;
+}
+
+.player_hand .card.turned:nth-child(1) {
+  left: 2.2em;
+}
+
+.player_hand .card.turned:nth-child(2) {
+  left: calc(2.2em * 2);
+}
+
+.player_hand .card.turned:nth-child(3) {
+  left: calc(2.2em * 3);
+}
+
+.player_hand .card.turned:nth-child(4) {
+  left: calc(2.2em * 4);
+}
+
+.player_hand .card.turned:nth-child(5) {
+  left: calc(2.2em * 5);
+}
+
+.player_hand .card.turned:nth-child(6) {
+  left: calc(2.2em * 6);
+}
+
+.player_hand .card.turned:nth-child(7) {
+  left: calc(2.2em * 7);
 }

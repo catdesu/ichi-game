@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
 import { PlayerInterface } from 'src/app/interfaces/player.interface';
 import { ColorDialogService } from 'src/app/services/color-dialog.service';
 import { JwtService } from 'src/app/services/jwt.service';
@@ -19,7 +20,7 @@ export class GameRoomComponent implements OnInit {
     ]),
   });
   public username: string = '';
-  public playerPos = ['player_top', 'player_left', 'player_right'];
+  public playerPos = ['player_left', 'player_top', 'player_right'];
   public joined: boolean = false;
   public started: boolean = false;
   public code: string = '';
@@ -28,7 +29,8 @@ export class GameRoomComponent implements OnInit {
   public playerCards: { username: string; cardsCount: number }[] = [];
   public playedCard: string = '';
   public playableCards: string[] = [];
-  public turnOrder: { username: string; isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[] = [];
+  public turnOrder: PlayerTurnInterface[] = [];
+  public fieldColor: string = '';
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -67,6 +69,8 @@ export class GameRoomComponent implements OnInit {
 
     this.websocketService.playedCard.subscribe((playedCard) => {
       this.playedCard = playedCard;
+      if (this.playedCard)
+        this.fieldColor = this.playedCard.slice(-1);
     });
 
     this.websocketService.playableCards.subscribe((playableCards) => {
@@ -104,7 +108,6 @@ export class GameRoomComponent implements OnInit {
     if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
       if (this.playableCards.includes(cardName)) {
         if (['changeColorW', 'draw4W'].includes(cardName)) {
-          // todo: make a popup to choose a color
           const chosenColor = await this.colorDialogService.openColorDialog();
           const newCardName = cardName.replace(/W$/, chosenColor);
           this.websocketService.playCard(newCardName);

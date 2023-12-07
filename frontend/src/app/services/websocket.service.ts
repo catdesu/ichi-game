@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { GameInterface } from '../interfaces/game.interface';
+import { PlayerTurnInterface } from '../interfaces/player-turn.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +27,7 @@ export class WebsocketService {
   >([]);
   public playedCard = new BehaviorSubject<string>('');
   public playableCards = new BehaviorSubject<string[]>([]);
-  public turnOrder = new BehaviorSubject<{ username: string; isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[]>([]);
+  public turnOrder = new BehaviorSubject<PlayerTurnInterface[]>([]);
 
   constructor(
     private readonly sessionsService: SessionStorageService,

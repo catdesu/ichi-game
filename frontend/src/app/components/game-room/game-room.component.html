@@ -112,16 +112,16 @@
 </div>
 
 <div class="game" *ngIf="joined && started">
-  <div class="game-field perspective red">
+  <div class="game-field {{fieldColor}} perspective red">
     <div id="player" [style]="username | playerTurnStyle: turnOrder">
       (You) ({{ playerHand.length }})
       <div class="player_hand">
-        <div *ngFor="let card of playerHand; let i = index" class="card" [style]="card | cardStyle: playableCards:false" (click)="playCard(card)">
+        <div *ngFor="let card of playerHand; let i = index" class="card" [style]="card | cardStyle: playableCards:false" [style.left]="i | getCardSpacing" (click)="playCard(card)">
           <div class="bckg"></div>
         </div>
       </div>
     </div>
-    <div *ngFor="let player of playerCards; let i = index" [id]="playerPos[i]" [style]="player.username| playerTurnStyle: turnOrder">
+    <div *ngFor="let player of playerCards; let i = index" [id]="playerCards.length === 1 ? playerPos[1] : playerPos[i]" [style]="player.username| playerTurnStyle: turnOrder">
       {{ player.username }} ({{ player.cardsCount }})
       <div class="player_hand">
         <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)" class="card turned">

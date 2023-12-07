@@ -184,13 +184,6 @@ export class GameRoomService {
   }
 
   getNextPlayerIndex(currentPlayerIndex: number, gameState: GameState) {
-    if (
-      gameState.turn_order.length === 2 &&
-      !gameState.is_forward_direction
-    ) {
-      return currentPlayerIndex;
-    }
-
     return gameState.is_forward_direction
       ? (currentPlayerIndex + 1) % gameState.turn_order.length
       : (currentPlayerIndex - 1 + gameState.turn_order.length) %
@@ -205,6 +198,23 @@ export class GameRoomService {
     }
 
     return drawedCards;
+  }
+
+  getOrderedPlayers(turnOrder: {username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean}[], currentPlayerUsername: string, otherPlayers: { username: string; cardsCount: number }[]): { username: string; cardsCount: number }[] {
+    const currentPlayerIndex = turnOrder.findIndex(player => player.username === currentPlayerUsername);
+    const orderedPlayers: { username: string; cardsCount: number }[] = [];
+    
+    // Order other players clockwise based on the current player's position
+    for (let i = currentPlayerIndex + 1; i < currentPlayerIndex + 4; i++) {
+      const index = i % turnOrder.length;
+      const isCurrentPlayer = index === currentPlayerIndex;
+      
+      if (!isCurrentPlayer) {
+        orderedPlayers.push(otherPlayers.find(player => player.username === turnOrder[index].username)!);
+      }
+    }
+
+    return orderedPlayers;
   }
 
   private getCardRank(card: string): string {
