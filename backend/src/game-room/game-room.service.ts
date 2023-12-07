@@ -8,6 +8,8 @@ import { PlayersService } from 'src/players/players.service';
 import { UpdatePlayerDto } from 'src/players/dto/update-player.dto';
 import { Player } from 'src/players/entities/player.entity';
 import { GameState } from 'src/game-states/entities/game-state.entity';
+import { playerCardsCountInterface } from './interfaces/player-cards-count.interface';
+import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
 
 @Injectable()
 export class GameRoomService {
@@ -200,20 +202,24 @@ export class GameRoomService {
     return drawedCards;
   }
 
-  getOrderedPlayers(turnOrder: {username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean}[], currentPlayerUsername: string, otherPlayers: { username: string; cardsCount: number }[]): { username: string; cardsCount: number }[] {
+  getOrderedPlayers(turnOrder: playerTurnOrderInterface[], currentPlayerUsername: string, otherPlayers: playerCardsCountInterface[]): playerCardsCountInterface[] {
     const currentPlayerIndex = turnOrder.findIndex(player => player.username === currentPlayerUsername);
-    const orderedPlayers: { username: string; cardsCount: number }[] = [];
-    
+    const orderedPlayers: playerCardsCountInterface[] = [];
+  
     // Order other players clockwise based on the current player's position
     for (let i = currentPlayerIndex + 1; i < currentPlayerIndex + 4; i++) {
       const index = i % turnOrder.length;
       const isCurrentPlayer = index === currentPlayerIndex;
-      
+  
       if (!isCurrentPlayer) {
-        orderedPlayers.push(otherPlayers.find(player => player.username === turnOrder[index].username)!);
+        const foundPlayer = otherPlayers.find(player => player?.username === turnOrder[index]?.username);
+        
+        if (foundPlayer) {
+          orderedPlayers.push(foundPlayer);
+        }
       }
     }
-
+  
     return orderedPlayers;
   }
 

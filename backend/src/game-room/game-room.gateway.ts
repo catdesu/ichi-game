@@ -19,6 +19,8 @@ import { UpdatePlayerDto } from 'src/players/dto/update-player.dto';
 import { CreateGameStateDto } from 'src/game-states/dto/create-game-state.dto';
 import { GameStatesService } from 'src/game-states/game-states.service';
 import { UpdateGameStateDto } from 'src/game-states/dto/update-game-state.dto';
+import { playerCardsCountInterface } from './interfaces/player-cards-count.interface';
+import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -43,13 +45,13 @@ export class GameRoomGateway {
     const result = this.jwtService.decode(token);
 
     const player = await this.gameRoomService.GetSessionPlayer(result);
-    const playerCards = [];
-    let handCards = [];
-    let discardPile = '';
-    let playableCards = [];
-    let otherPlayers = [];
-    let turnOrder = [];
-    let orderedPlayers = [];
+    const playerCards: playerCardsCountInterface[] = [];
+    let handCards: string[] = [];
+    let discardPile: string = '';
+    let playableCards: string[] = [];
+    let otherPlayers: playerCardsCountInterface[] = [];
+    let turnOrder: playerTurnOrderInterface[] = [];
+    let orderedPlayers: playerCardsCountInterface[] = [];
 
     if (player.gameRoom !== null) {
       if (player.gameRoom.status !== GameRoomStatus.Completed) {
@@ -128,7 +130,6 @@ export class GameRoomGateway {
                 (player) => player.username !== thisPlayer.username,
               );
               orderedPlayers = isInProgress ? this.gameRoomService.getOrderedPlayers(turnOrder, thisPlayer.username, otherPlayers) : otherPlayers;
-              console.log(thisPlayer.username, orderedPlayers);
             }
 
             const playerSession = {
@@ -307,9 +308,9 @@ export class GameRoomGateway {
       ];
       const discardPile: string[] = [];
       const cardsToSkip: string[] = ['changeColorW', 'draw4W'];
-      const playerCards: { username: string; cardsCount: number }[] = [];
+      const playerCards: playerCardsCountInterface[] = [];
 
-      const turnOrder = [...session.players]
+      const turnOrder: playerTurnOrderInterface[] = [...session.players]
         .sort(() => Math.random() - 0.5)
         .map((player, index) => ({
           username: player.username,
@@ -337,7 +338,7 @@ export class GameRoomGateway {
       let firstCardPlayed = shuffleDeck.pop();
       discardPile.push(firstCardPlayed);
 
-      // Prevent beginnnig with a special card (without colour)
+      // Prevent beginnnig with a special card (without color)
       while (cardsToSkip.includes(firstCardPlayed)) {
         shuffleDeck.unshift(discardPile.pop());
         firstCardPlayed = shuffleDeck.pop();
@@ -373,7 +374,6 @@ export class GameRoomGateway {
           (player) => player.username !== thisPlayer.username,
         );
         const orderedPlayers = this.gameRoomService.getOrderedPlayers(turnOrder, thisPlayer.username, otherPlayers);
-        console.log(thisPlayer.username, orderedPlayers);
 
         const playerSession = {
           started: true,
@@ -422,7 +422,7 @@ export class GameRoomGateway {
             const currentPlayerIndex = gameState.turn_order.findIndex(
               (player) => player.isPlayerTurn,
             );
-            const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
+            let nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
 
             const switchPlayerTurn = (currentIndex: number, nextIndex: number): void => {
               gameState.turn_order[currentIndex].isPlayerTurn = false;
@@ -438,6 +438,7 @@ export class GameRoomGateway {
 
               case this.gameRoomService.reverseTurnOrder:
                 gameState.is_forward_direction = !gameState.is_forward_direction;
+                nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(currentPlayerIndex, gameState);
                 switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
                 break;
 
@@ -493,6 +494,7 @@ export class GameRoomGateway {
               discard_pile: gameState.discard_pile,
               turn_order: gameState.turn_order,
               deck: gameState.deck,
+              is_forward_direction: gameState.is_forward_direction,
             };
 
             const updatePlayerDto: UpdatePlayerDto = {
