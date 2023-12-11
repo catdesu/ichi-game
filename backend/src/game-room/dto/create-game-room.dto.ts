@@ -1,7 +1,7 @@
 import { IsAlphanumeric, IsEnum, IsNotEmpty, IsNumber, Length } from "class-validator";
 import { GameRoomStatus } from "../enums/game-room-status.enum";
 
-export class CreatePlayerDto {
+export class CreateGameRoomDto {
   @IsAlphanumeric()
   @IsNotEmpty()
   @Length(6, 6)

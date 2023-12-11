@@ -149,3 +149,15 @@
     </div>
   </div>
 </div>
+
+<div *ngIf="message && message !== ''" class="overlay" [@fadeInOut]="show ? 'visible' : 'hidden'">
+  <div class="message">
+    <span class="text-7xl {{ message === 'You win' ? 'text-green-500' : 'text-red-500' }}">
+      {{ message }}
+    </span><br>
+    <span *ngIf="winner && winner !== ''" class="text-3xl text-white">
+      {{ winner }} has won the game!
+    </span>
+  </div>
+</div>
+

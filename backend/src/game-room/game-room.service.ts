@@ -10,6 +10,7 @@ import { Player } from 'src/players/entities/player.entity';
 import { GameState } from 'src/game-states/entities/game-state.entity';
 import { playerCardsCountInterface } from './interfaces/player-cards-count.interface';
 import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
+import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 
 @Injectable()
 export class GameRoomService {
@@ -36,7 +37,7 @@ export class GameRoomService {
     return player;
   }
 
-  async createGameRoom(
+  async create(
     playerId: number,
   ): Promise<{ gameRoom: GameRoom; player: Player }> {
     const code = await this.generateRandomUniqueCode();
@@ -59,7 +60,20 @@ export class GameRoomService {
     return { gameRoom, player };
   }
 
-  async joinGameRoom(code: string, playerId: number): Promise<Player> {
+  async update(id: number, updateGameRoomDto: UpdateGameRoomDto): Promise<GameRoom> {
+    const gameRoom = await this.gameRoomRepository.findOne({
+      where: { id: id },
+    });
+
+    if (!gameRoom) throw new Error('Game room not found');
+
+    gameRoom.code = updateGameRoomDto.code;
+    gameRoom.status = updateGameRoomDto.status;
+
+    return await this.gameRoomRepository.save(gameRoom);
+  }
+
+  async join(code: string, playerId: number): Promise<Player> {
     const gameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
       relations: ['players'],
@@ -71,14 +85,14 @@ export class GameRoomService {
     return await this.playersService.update(playerId, updatePlayerDto);
   }
 
-  async leaveGameRoom(playerId: number) {
+  async leave(playerId: number) {
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
     updatePlayerDto.fk_game_room_id = null;
 
     await this.playersService.update(playerId, updatePlayerDto);
   }
 
-  async getPlayersInGameRoom(code: string): Promise<Player[]> {
+  async getPlayers(code: string): Promise<Player[]> {
     const gameRoom: GameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
       relations: ['players'],
@@ -87,7 +101,7 @@ export class GameRoomService {
     return gameRoom.players;
   }
 
-  async startGameRoom(code: string): Promise<void> {
+  async start(code: string): Promise<void> {
     const gameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
     });
@@ -207,7 +221,7 @@ export class GameRoomService {
     const orderedPlayers: playerCardsCountInterface[] = [];
   
     // Order other players clockwise based on the current player's position
-    for (let i = currentPlayerIndex + 1; i < currentPlayerIndex + 4; i++) {
+    for (let i = currentPlayerIndex + 1; i < currentPlayerIndex + turnOrder.length; i++) {
       const index = i % turnOrder.length;
       const isCurrentPlayer = index === currentPlayerIndex;
   

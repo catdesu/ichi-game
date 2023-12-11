@@ -1,3 +1,4 @@
+import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
@@ -10,6 +11,18 @@ import { WebsocketService } from 'src/app/services/websocket.service';
   selector: 'app-game-room',
   templateUrl: './game-room.component.html',
   styleUrls: ['./game-room.component.css'],
+  animations: [
+    trigger('fadeInOut', [
+      state('visible', style({
+        opacity: 1,
+      })),
+      state('hidden', style({
+        opacity: 0,
+      })),
+      transition('visible => hidden', animate('500ms ease-out')),
+      transition('hidden => visible', animate('500ms ease-in')),
+    ]),
+  ],
 })
 export class GameRoomComponent implements OnInit {
   joinGameForm: FormGroup = new FormGroup({
@@ -31,6 +44,9 @@ export class GameRoomComponent implements OnInit {
   public playableCards: string[] = [];
   public turnOrder: PlayerTurnInterface[] = [];
   public fieldColor: string = '';
+  public message: string = '';
+  public winner: string = '';
+  public show: boolean = false;
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -79,6 +95,23 @@ export class GameRoomComponent implements OnInit {
 
     this.websocketService.turnOrder.subscribe((turnOrder) => {
       this.turnOrder = turnOrder;
+    });
+    
+    this.websocketService.winner.subscribe((winner) => {
+      this.winner = winner;
+    });
+    
+    this.websocketService.message.subscribe((message) => {
+      this.message = message;
+      this.show = true;
+
+      if (message !== '') {
+        setTimeout(() => {
+          this.show = false;
+          this.message = '';
+          this.websocketService.partialResetState();
+        }, 5000);
+      }
     });
   }
 

@@ -56,4 +56,8 @@ export class GameStatesService {
       throw new BadRequestException('Failed to create game state.');
     }
   }
+
+  async delete(id: number) {
+    return await this.gameStateRepository.delete({ id: id });
+  }
 }

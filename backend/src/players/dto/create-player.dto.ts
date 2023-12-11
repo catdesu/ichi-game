@@ -1,6 +1,10 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, Length, MinLength } from "class-validator";
+import { IsAlphanumeric, IsNotEmpty, IsNumber, IsOptional, IsString, Length, MinLength } from "class-validator";
 
 export class CreatePlayerDto {
+  @IsNumber()
+  @IsOptional()
+  fk_game_room_id?: number;
+  
   @IsString()
   @IsAlphanumeric()
   @IsNotEmpty()
@@ -11,4 +15,8 @@ export class CreatePlayerDto {
   @IsNotEmpty()
   @MinLength(8)
   password: string;
+  
+  @IsString()
+  @IsOptional()
+  hand_cards?: string[];
 }

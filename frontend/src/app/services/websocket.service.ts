@@ -28,6 +28,8 @@ export class WebsocketService {
   public playedCard = new BehaviorSubject<string>('');
   public playableCards = new BehaviorSubject<string[]>([]);
   public turnOrder = new BehaviorSubject<PlayerTurnInterface[]>([]);
+  public message = new BehaviorSubject<string>('');
+  public winner = new BehaviorSubject<string>('');
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -58,6 +60,7 @@ export class WebsocketService {
     this.socket.on('start-response', (data) => this.handleStartGame(data));
     this.socket.on('play-card-response', (data) => this.handlePlayCard(data));
     this.socket.on('draw-card-response', (data) => this.handleDrawCard(data));
+    this.socket.on('game-result', (data) => this.handleGameResult(data));
   }
 
   createGame() {
@@ -182,6 +185,27 @@ export class WebsocketService {
     this.playerCards.next(data.player_cards);
   }
 
+  handleGameResult(data: any) {
+    if (data.winner) {
+      this.winner.next(data.winner);
+    }
+
+    this.message.next(data.message);
+  }
+
+
+  partialResetState() {
+    this.started.next(false);
+    this.playerHand.next([]);
+    this.playedCard.next('');
+    this.playerCards.next([]);
+    this.started.next(false);
+    this.playableCards.next([]);
+    this.turnOrder.next([]);
+    this.winner.next('');
+    this.message.next('');
+  }
+
   resetState() {
     this.code.next('');
     this.players.next([]);
@@ -193,5 +217,7 @@ export class WebsocketService {
     this.started.next(false);
     this.playableCards.next([]);
     this.turnOrder.next([]);
+    this.winner.next('');
+    this.message.next('');
   }
 }

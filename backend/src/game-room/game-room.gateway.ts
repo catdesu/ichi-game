@@ -21,6 +21,7 @@ import { GameStatesService } from 'src/game-states/game-states.service';
 import { UpdateGameStateDto } from 'src/game-states/dto/update-game-state.dto';
 import { playerCardsCountInterface } from './interfaces/player-cards-count.interface';
 import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
+import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -54,104 +55,102 @@ export class GameRoomGateway {
     let orderedPlayers: playerCardsCountInterface[] = [];
 
     if (player.gameRoom !== null) {
-      if (player.gameRoom.status !== GameRoomStatus.Completed) {
-        const isCreator =
-          player.gameRoom.fk_creator_player_id === result.userId;
-        const isInProgress =
-          player.gameRoom.status === GameRoomStatus.InProgress;
+      const isCreator =
+        player.gameRoom.fk_creator_player_id === result.userId;
+      const isInProgress =
+        player.gameRoom.status === GameRoomStatus.InProgress;
 
-        if (!this.sessions.has(player.gameRoom.code)) {
-          const sessionPlayer: playersInterface = {
+      if (!this.sessions.has(player.gameRoom.code)) {
+        const sessionPlayer: playersInterface = {
+          id: client.id,
+          isCreator: isCreator,
+          username: player.username,
+          handCards: player.hand_cards,
+        };
+
+        this.sessions.set(player.gameRoom.code, {
+          status: player.gameRoom.status,
+          players: [sessionPlayer],
+        });
+      } else {
+        if (
+          !this.sessions
+            .get(player.gameRoom.code)
+            .players.includes({
+              id: client.id,
+              isCreator: isCreator,
+              username: player.username,
+            })
+        ) {
+          this.sessions.get(player.gameRoom.code).players.push({
             id: client.id,
             isCreator: isCreator,
             username: player.username,
             handCards: player.hand_cards,
+          });
+        }
+      }
+
+      const session = this.sessions.get(player.gameRoom.code);
+
+      session.players.forEach((thisPlayer) => {
+        let playerHand: string[] = player.gameRoom.players.find(
+          (player) => player.username === thisPlayer.username,
+        ).hand_cards;
+
+        if (playerHand) {
+          thisPlayer.handCards = playerHand;
+
+          playerCards.push({
+            username: thisPlayer.username,
+            cardsCount: playerHand.length,
+          });
+        }
+      });
+
+      if (isInProgress) {
+        const gameState = await this.gameStatesService.findOneByGameRoomId(
+          player.fk_game_room_id,
+        );
+
+        discardPile = gameState.discard_pile.shift();
+        turnOrder = gameState.turn_order;
+        handCards = player.hand_cards;
+      }
+
+      this.sessions
+        .get(player.gameRoom.code)
+        .players.forEach((thisPlayer) => {
+          if (player.hand_cards) {
+            playableCards = this.gameRoomService.getPlayableCards(
+              thisPlayer.handCards,
+              discardPile,
+            );
+            otherPlayers = playerCards.filter(
+              (player) => player.username !== thisPlayer.username,
+            );
+            orderedPlayers = isInProgress ? this.gameRoomService.getOrderedPlayers(turnOrder, thisPlayer.username, otherPlayers) : otherPlayers;
+          }
+
+          const playerSession = {
+            status: 'success',
+            code: player.gameRoom.code,
+            players: this.sessions.get(player.gameRoom.code).players,
+            joined: true,
+            started: isInProgress,
+            hand_cards: thisPlayer.handCards,
+            played_card: discardPile,
+            player_cards: orderedPlayers,
+            playable_cards: playableCards,
+            turnOrder: turnOrder,
           };
 
-          this.sessions.set(player.gameRoom.code, {
-            status: player.gameRoom.status,
-            players: [sessionPlayer],
-          });
-        } else {
-          if (
-            !this.sessions
-              .get(player.gameRoom.code)
-              .players.includes({
-                id: client.id,
-                isCreator: isCreator,
-                username: player.username,
-              })
-          ) {
-            this.sessions.get(player.gameRoom.code).players.push({
-              id: client.id,
-              isCreator: isCreator,
-              username: player.username,
-              handCards: player.hand_cards,
-            });
-          }
-        }
-
-        const session = this.sessions.get(player.gameRoom.code);
-
-        session.players.forEach((thisPlayer) => {
-          let playerHand: string[] = player.gameRoom.players.find(
-            (player) => player.username === thisPlayer.username,
-          ).hand_cards;
-
-          if (playerHand) {
-            thisPlayer.handCards = playerHand;
-
-            playerCards.push({
-              username: thisPlayer.username,
-              cardsCount: playerHand.length,
-            });
+          if (client.id === thisPlayer.id) {
+            client.emit('join-response', playerSession);
+          } else {
+            client.to(thisPlayer.id).emit('join-response', playerSession);
           }
         });
-
-        if (isInProgress) {
-          const gameState = await this.gameStatesService.findOneByGameRoomId(
-            player.fk_game_room_id,
-          );
-
-          discardPile = gameState.discard_pile.shift();
-          turnOrder = gameState.turn_order;
-          handCards = player.hand_cards;
-        }
-
-        this.sessions
-          .get(player.gameRoom.code)
-          .players.forEach((thisPlayer) => {
-            if (player.hand_cards) {
-              playableCards = this.gameRoomService.getPlayableCards(
-                thisPlayer.handCards,
-                discardPile,
-              );
-              otherPlayers = playerCards.filter(
-                (player) => player.username !== thisPlayer.username,
-              );
-              orderedPlayers = isInProgress ? this.gameRoomService.getOrderedPlayers(turnOrder, thisPlayer.username, otherPlayers) : otherPlayers;
-            }
-
-            const playerSession = {
-              status: 'success',
-              code: player.gameRoom.code,
-              players: this.sessions.get(player.gameRoom.code).players,
-              joined: true,
-              started: isInProgress,
-              hand_cards: thisPlayer.handCards,
-              played_card: discardPile,
-              player_cards: orderedPlayers,
-              playable_cards: playableCards,
-              turnOrder: turnOrder,
-            };
-
-            if (client.id === thisPlayer.id) {
-              client.emit('join-response', playerSession);
-            } else {
-              client.to(thisPlayer.id).emit('join-response', playerSession);
-            }
-          });
-      }
     }
   }
 
@@ -190,7 +189,7 @@ export class GameRoomGateway {
   ): Promise<void> {
     const { playerId } = data;
     const { gameRoom, player } =
-      await this.gameRoomService.createGameRoom(playerId);
+      await this.gameRoomService.create(playerId);
     const sessionPlayer: playersInterface = {
       id: client.id,
       isCreator: true,
@@ -242,7 +241,7 @@ export class GameRoomGateway {
       return;
     }
 
-    const player = await this.gameRoomService.joinGameRoom(code, playerId);
+    const player = await this.gameRoomService.join(code, playerId);
 
     const sessionPlayer: playersInterface = {
       id: client.id,
@@ -274,7 +273,7 @@ export class GameRoomGateway {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave')
   async handleLeave(client: Socket, data: { code: string; playerId: number }) {
-    await this.gameRoomService.leaveGameRoom(data.playerId);
+    await this.gameRoomService.leave(data.playerId);
 
     if (this.sessions.has(data.code)) {
       this.sessions.get(data.code).players.forEach((thisPlayer, index) => {
@@ -362,7 +361,7 @@ export class GameRoomGateway {
       };
 
       this.gameStatesService.create(createGameStateDto);
-      this.gameRoomService.startGameRoom(data.code);
+      this.gameRoomService.start(data.code);
 
       session.players.forEach((thisPlayer) => {
         const playableCards = this.gameRoomService.getPlayableCards(
@@ -484,12 +483,6 @@ export class GameRoomGateway {
               player.hand_cards.splice(cardToRemoveIndex, 1);
             }
 
-            if (player.hand_cards.length === 0) {
-              // todo: win or lose game screen
-              // todo: Go back to game room lobby
-              
-            }
-
             const updateGameStateDto: UpdateGameStateDto = {
               discard_pile: gameState.discard_pile,
               turn_order: gameState.turn_order,
@@ -509,6 +502,29 @@ export class GameRoomGateway {
               player.username,
               updatePlayerDto,
             );
+
+            if (newPlayerState.hand_cards.length === 0) {
+              const updateGameRoomDto: UpdateGameRoomDto = {
+                status: GameRoomStatus.Open,
+              };
+
+              await this.gameRoomService.update(player.gameRoom.id, updateGameRoomDto);
+              await this.gameStatesService.delete(newGameState.id);
+
+              session.players.forEach(async thisPlayer => {
+                const updatePlayerDto: UpdatePlayerDto = {
+                  hand_cards: null,
+                };
+
+                await this.playerService.updateByUsername(thisPlayer.username, updatePlayerDto);
+
+                if (thisPlayer.id === client.id) {
+                  client.emit('game-result', { message: 'You win' });
+                } else {
+                  client.to(thisPlayer.id).emit('game-result', { message: 'You lose', winner: player.username });
+                }
+              });
+            }
 
             session.players.find(
               (player) => player.username === newPlayerState.username,
@@ -663,8 +679,4 @@ export class GameRoomGateway {
       }
     }
   }
-
-  @UseGuards(WsJwtGuard)
-  @SubscribeMessage('finished')
-  handleGameFinished(client: Socket, data: { code: string }) {}
 }
