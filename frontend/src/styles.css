@@ -12,6 +12,7 @@ body {
   background-repeat: no-repeat;
   background-attachment: fixed;
   overflow-x: hidden;
+  user-select: none;
 }
 
 .toast-top-right {

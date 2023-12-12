@@ -53,6 +53,7 @@ export class GameRoomGateway {
     let otherPlayers: playerCardsCountInterface[] = [];
     let turnOrder: playerTurnOrderInterface[] = [];
     let orderedPlayers: playerCardsCountInterface[] = [];
+    let direction: boolean = true;
 
     if (player.gameRoom !== null) {
       const isCreator =
@@ -116,6 +117,7 @@ export class GameRoomGateway {
         discardPile = gameState.discard_pile.shift();
         turnOrder = gameState.turn_order;
         handCards = player.hand_cards;
+        direction = gameState.is_forward_direction;
       }
 
       this.sessions
@@ -143,6 +145,7 @@ export class GameRoomGateway {
             player_cards: orderedPlayers,
             playable_cards: playableCards,
             turnOrder: turnOrder,
+            direction: direction,
           };
 
           if (client.id === thisPlayer.id) {
@@ -381,6 +384,7 @@ export class GameRoomGateway {
           player_cards: orderedPlayers,
           playable_cards: playableCards,
           turnOrder: turnOrder,
+          direction: true,
         };
 
         if (client.id === thisPlayer.id) {
@@ -550,6 +554,7 @@ export class GameRoomGateway {
                   turnOrder: newGameState.turn_order,
                   playable_cards: playableCards,
                   player_cards: orderedPlayers,
+                  direction: newGameState.is_forward_direction,
                 };
 
                 if (client.id === thisPlayer.id) {
@@ -660,6 +665,7 @@ export class GameRoomGateway {
                 let playerSession: any = {
                   player_cards: orderedPlayers,
                   turnOrder: newGameState.turn_order,
+                  direction: gameState.is_forward_direction,
                 };
   
                 if (client.id === thisPlayer.id) {

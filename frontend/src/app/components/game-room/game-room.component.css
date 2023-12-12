@@ -2,9 +2,6 @@
   height: 100%;
   margin: 0;
   padding: 0;
-}
-
-.game {
   font-family: Arial;
   perspective: 100em;
 }
@@ -62,6 +59,21 @@
 
 .game-field.G #piles_area {
   background-color: rgba(1, 141, 65, 0.4);
+}
+
+#piles_area #direction {
+  will-change: transform;
+  background: url("../../../assets/images/direction.svg") center/cover;
+  position: absolute;
+  opacity: 0.5;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.reverse {
+  transform: scaleX(-1);
 }
 
 #draw_pile {
@@ -576,4 +588,13 @@
 .changeColorW {
   background: url("../../../assets/images/cards-front/changeColorW.png") center/cover;
   color: transparent;
+}
+
+.pi.pi-copy {
+  font-size: 18px;
+}
+
+.pi.pi-copy:hover {
+  opacity: 0.5;
+  cursor: pointer;
 }

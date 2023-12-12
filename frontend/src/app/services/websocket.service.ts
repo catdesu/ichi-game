@@ -30,6 +30,7 @@ export class WebsocketService {
   public turnOrder = new BehaviorSubject<PlayerTurnInterface[]>([]);
   public message = new BehaviorSubject<string>('');
   public winner = new BehaviorSubject<string>('');
+  public direction = new BehaviorSubject<boolean>(true);
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -100,6 +101,7 @@ export class WebsocketService {
     this.started.next(data.started);
     this.playableCards.next(data.playable_cards);
     this.turnOrder.next(data.turnOrder);
+    this.direction.next(data.direction);
   }
 
   leaveGame() {
@@ -140,6 +142,7 @@ export class WebsocketService {
     this.playableCards.next(data.playable_cards);
     this.turnOrder.next(data.turnOrder);
     this.started.next(data.started);
+    this.direction.next(data.direction);
   }
 
   playCard(cardName: string, chosenColor?: string) {
@@ -166,6 +169,7 @@ export class WebsocketService {
     this.playedCard.next(data.played_card);
     this.playableCards.next(data.playable_cards);
     this.turnOrder.next(data.turnOrder);
+    this.direction.next(data.direction);
   }
 
   drawCard() {
@@ -183,6 +187,7 @@ export class WebsocketService {
 
     this.turnOrder.next(data.turnOrder);
     this.playerCards.next(data.player_cards);
+    this.direction.next(data.direction);
   }
 
   handleGameResult(data: any) {
@@ -204,6 +209,7 @@ export class WebsocketService {
     this.turnOrder.next([]);
     this.winner.next('');
     this.message.next('');
+    this.direction.next(true);
   }
 
   resetState() {
@@ -219,5 +225,6 @@ export class WebsocketService {
     this.turnOrder.next([]);
     this.winner.next('');
     this.message.next('');
+    this.direction.next(true);
   }
 }

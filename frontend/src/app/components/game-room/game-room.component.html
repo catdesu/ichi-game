@@ -1,163 +1,127 @@
-<div
-  *ngIf="!joined"
-  class="card"
-  class="h-full w-full flex flex-column align-items-center"
->
-  <p-card [style]="{ width: '25rem', 'margin-bottom': '2em' }">
-    <div>
-      <h3 class="mb-0">Create a game room</h3>
-      <hr class="mt-0" />
-      <p-button
-        type="p-button"
-        (onClick)="createGame()"
-        styleClass="w-full"
-        label="Create"
-      ></p-button>
-    </div>
-    <div>
-      <h3 class="mb-0">Join a game room</h3>
-      <hr class="mt-0" />
-      <form [formGroup]="joinGameForm" (ngSubmit)="joinGame()" class="w-full">
-        <div
-          class="formgrid grid mt-4"
-          [ngClass]="{
+<div *ngIf="!joined" class="card" class="h-full w-full flex flex-column align-items-center">
+    <p-card [style]="{ width: '25rem', 'margin-bottom': '2em' }">
+        <div>
+            <h3 class="mb-0">Create a game room</h3>
+            <hr class="mt-0" />
+            <p-button type="p-button" (onClick)="createGame()" styleClass="w-full" label="Create"></p-button>
+        </div>
+        <div>
+            <h3 class="mb-0">Join a game room</h3>
+            <hr class="mt-0" />
+            <form [formGroup]="joinGameForm" (ngSubmit)="joinGame()" class="w-full">
+                <div class="formgrid grid mt-4" [ngClass]="{
             'ng-invalid':
               joinGameForm.controls['code'].invalid &&
               (joinGameForm.controls['code'].dirty ||
                 joinGameForm.controls['code'].touched),
             'ng-dirty': joinGameForm.controls['code'].dirty
-          }"
-        >
-          <div class="field col w-full">
-            <span class="p-float-label">
-              <input
-                type="text"
-                id="code"
-                maxlength="6"
-                formControlName="code"
-                pInputText
-              />
-              <label for="code">Enter code</label>
-            </span>
-            <div
-              *ngIf="
+          }">
+                    <div class="field col w-full">
+                        <span class="p-float-label">
+                            <input type="text" id="code" maxlength="6" formControlName="code" pInputText />
+                            <label for="code">Enter code</label>
+                        </span>
+                        <div *ngIf="
                 joinGameForm.controls['code'].invalid &&
                 (joinGameForm.controls['code'].dirty ||
                   joinGameForm.controls['code'].touched)
-              "
-              class="alert"
-            >
-              <small
-                *ngIf="joinGameForm.controls['code'].errors?.['required']"
-                class="text-red-600 pl-1"
-              >
-                Please enter a valid code
-              </small>
-            </div>
-          </div>
-          <div class="field col">
-            <p-button
-              [style]="{ width: '100%' }"
-              [disabled]="joinGameForm.invalid"
-              type="submit"
-              label="Join"
-            ></p-button>
-          </div>
+              " class="alert">
+                            <small *ngIf="joinGameForm.controls['code'].errors?.['required']" class="text-red-600 pl-1">
+                                Please enter a valid code
+                            </small>
+                        </div>
+                    </div>
+                    <div class="field col">
+                        <p-button [style]="{ width: '100%' }" [disabled]="joinGameForm.invalid" type="submit"
+                            label="Join"></p-button>
+                    </div>
+                </div>
+            </form>
         </div>
-      </form>
-    </div>
-  </p-card>
+    </p-card>
 </div>
 
-<div
-  *ngIf="joined && !started"
-  class="card"
-  class="h-full w-full flex flex-column align-items-center"
->
-  <p-card [style]="{ width: '25rem', 'margin-bottom': '2em' }">
-    <p-button
-      (onClick)="leaveGame()"
-      icon="pi pi-arrow-circle-left"
-      styleClass="p-button-secondary p-button-outlined mb-3"
-      type="p-button"
-      label="Leave game"
-    ></p-button>
-    <p-table [value]="players" styleClass="p-datatable-gridlines mb-3">
-      <ng-template pTemplate="caption">
-        Game room code: {{ code }}
-      </ng-template>
-      <ng-template pTemplate="header">
-        <tr>
-          <th></th>
-          <th>Username</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-player>
-        <tr>
-          <td class="text-center">
-            <i *ngIf="player.isCreator" class="pi pi-wrench"></i>
-          </td>
-          <td>{{ player.username }}</td>
-        </tr>
-      </ng-template>
-    </p-table>
-    <p-button
-      [style]="{ width: '100%' }"
-      (onClick)="startGame()"
-      [disabled]="players.length < 2"
-      type="p-button"
-      label="Start game"
-    ></p-button>
-  </p-card>
+<div *ngIf="joined && !started" class="card" class="h-full w-full flex flex-column align-items-center">
+    <p-card [style]="{ width: '25rem', 'margin-bottom': '2em' }">
+        <p-button (onClick)="leaveGame()" icon="pi pi-arrow-circle-left"
+            styleClass="p-button-secondary p-button-outlined mb-3" type="p-button" label="Leave game"></p-button>
+        <p-table [value]="players" styleClass="p-datatable-gridlines mb-3">
+            <ng-template pTemplate="caption">
+                Game room code: {{ code }}
+                <i class="pi pi-copy" [pTooltip]="tooltipText" tooltipPosition="top" (click)="copyCode()"></i>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th></th>
+                    <th>Username</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-player>
+                <tr>
+                    <td class="text-center">
+                        <i *ngIf="player.isCreator" class="pi pi-wrench"></i>
+                    </td>
+                    <td>{{ player.username }}</td>
+                </tr>
+            </ng-template>
+        </p-table>
+        <p-button [style]="{ width: '100%' }" (onClick)="startGame()" [disabled]="players.length < 2" type="p-button"
+            label="Start game"></p-button>
+    </p-card>
 </div>
 
 <div class="game" *ngIf="joined && started">
-  <div class="game-field {{fieldColor}} perspective red">
-    <div id="player" [style]="username | playerTurnStyle: turnOrder">
-      (You) ({{ playerHand.length }})
-      <div class="player_hand">
-        <div *ngFor="let card of playerHand; let i = index" class="card {{ card }}" [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing" (click)="playCard(card)">
-          <div class="bckg"></div>
+    <div class="game-field {{fieldColor}} perspective red">
+        <div id="player" [style]="username | playerTurnStyle: turnOrder">
+            (You) ({{ playerHand.length }})
+            <div class="player_hand">
+                <div *ngFor="let card of playerHand; let i = index" class="card {{ card }}"
+                    [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing"
+                    (click)="playCard(card)">
+                    <div class="bckg"></div>
+                </div>
+            </div>
         </div>
-      </div>
+        <div *ngFor="let player of playerCards; let i = index"
+            [id]="playerCards.length === 1 ? playerPos[1] : playerPos[i]"
+            [style]="player.username| playerTurnStyle: turnOrder">
+            {{ player.username }} ({{ player.cardsCount }})
+            <div class="player_hand">
+                <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)"
+                    class="card turned">
+                    <div class="bckg"></div>
+                </div>
+            </div>
+        </div>
+        <div id="piles_area">
+            <div id="direction" [class.reverse]="direction"></div>
+            <div id="draw_pile">
+                <div class="card turned top-card" (click)="drawCard()">
+                    <div class="bckg"></div>
+                </div>
+                <div class="card turned pile">
+                    <div class="bckg"></div>
+                </div>
+            </div>
+            <div id="discard_pile">
+                <div class="card top-card {{ playedCard }}">
+                    <div class="bckg"></div>
+                </div>
+                <div class="card pile">
+                    <div class="bckg"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div *ngFor="let player of playerCards; let i = index" [id]="playerCards.length === 1 ? playerPos[1] : playerPos[i]" [style]="player.username| playerTurnStyle: turnOrder">
-      {{ player.username }} ({{ player.cardsCount }})
-      <div class="player_hand">
-        <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)" class="card turned">
-          <div class="bckg"></div>
-        </div>
-      </div>
-    </div>
-    <div id="piles_area">
-      <div id="draw_pile">
-        <div class="card turned top-card" (click)="drawCard()">
-          <div class="bckg"></div>
-        </div>
-        <div class="card turned pile">
-          <div class="bckg"></div>
-        </div>
-      </div>
-      <div id="discard_pile">
-        <div class="card top-card {{ playedCard }}">
-          <div class="bckg"></div>
-        </div>
-        <div class="card pile">
-          <div class="bckg"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div *ngIf="message && message !== ''" class="overlay" [@fadeInOut]="show ? 'visible' : 'hidden'">
-  <div class="message">
-    <span class="text-7xl {{ message === 'You win' ? 'text-green-500' : 'text-red-500' }}">
-      {{ message }}
-    </span><br>
-    <span *ngIf="winner && winner !== ''" class="text-3xl text-white">
-      {{ winner }} has won the game!
-    </span>
-  </div>
+    <div class="message">
+        <span class="text-7xl {{ message === 'You win' ? 'text-green-500' : 'text-red-500' }}">
+            {{ message }}
+        </span><br>
+        <span *ngIf="winner && winner !== ''" class="text-3xl text-white">
+            {{ winner }} has won the game!
+        </span>
+    </div>
 </div>
-

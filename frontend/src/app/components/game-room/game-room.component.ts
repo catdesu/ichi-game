@@ -1,6 +1,8 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+import { Tooltip } from 'primeng/tooltip';
 import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
 import { PlayerInterface } from 'src/app/interfaces/player.interface';
 import { ColorDialogService } from 'src/app/services/color-dialog.service';
@@ -25,6 +27,7 @@ import { WebsocketService } from 'src/app/services/websocket.service';
   ],
 })
 export class GameRoomComponent implements OnInit {
+  @ViewChild(Tooltip) tooltip!: Tooltip;
   joinGameForm: FormGroup = new FormGroup({
     code: new FormControl(null, [
       Validators.required,
@@ -33,6 +36,7 @@ export class GameRoomComponent implements OnInit {
     ]),
   });
   public username: string = '';
+  public tooltipText: string = 'Copy code';
   public playerPos = ['player_left', 'player_top', 'player_right'];
   public joined: boolean = false;
   public started: boolean = false;
@@ -47,11 +51,13 @@ export class GameRoomComponent implements OnInit {
   public message: string = '';
   public winner: string = '';
   public show: boolean = false;
+  public direction: boolean = false;
 
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
-    private readonly colorDialogService: ColorDialogService
+    private readonly colorDialogService: ColorDialogService,
+    private readonly toastrService: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -113,6 +119,11 @@ export class GameRoomComponent implements OnInit {
         }, 5000);
       }
     });
+
+    this.websocketService.direction.subscribe((direction) => {
+      // Reverse direction true = reversed, false = normal
+      this.direction = !direction;
+    });
   }
 
   createGame() {
@@ -135,6 +146,17 @@ export class GameRoomComponent implements OnInit {
 
   startGame() {
     this.websocketService.startGame();
+  }
+
+  async copyCode() {
+    await navigator.clipboard.writeText(this.code);
+    this.tooltipText = 'Copied to clipboard!';
+    this.tooltip.activate();
+
+    setTimeout(() => {
+      this.tooltip.hide();
+      this.tooltipText = 'Copy code';
+    }, 2000);
   }
 
   async playCard(cardName: string) {

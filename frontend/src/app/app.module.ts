@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
-import {ButtonModule} from "primeng/button";
+import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
 import { ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,6 +22,7 @@ import { PlayerTurnStylePipe } from './pipes/player-turn-style.pipe';
 import { ColorDialogComponent } from './components/color-dialog/color-dialog.component';
 import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { GetCardSpacingPipe } from './pipes/get-card-spacing.pipe';
+import {TooltipModule} from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
@@ -53,7 +54,8 @@ import { GetCardSpacingPipe } from './pipes/get-card-spacing.pipe';
     BrowserAnimationsModule,
     MenubarModule,
     TableModule,
-    DynamicDialogModule
+    DynamicDialogModule,
+    TooltipModule
   ],
   providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }, DialogService],
   bootstrap: [AppComponent]
