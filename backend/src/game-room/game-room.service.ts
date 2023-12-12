@@ -89,7 +89,7 @@ export class GameRoomService {
     const updatePlayerDto: UpdatePlayerDto = new UpdatePlayerDto();
     updatePlayerDto.fk_game_room_id = null;
 
-    await this.playersService.update(playerId, updatePlayerDto);
+    return await this.playersService.update(playerId, updatePlayerDto);
   }
 
   async getPlayers(code: string): Promise<Player[]> {

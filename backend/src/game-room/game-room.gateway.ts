@@ -165,22 +165,30 @@ export class GameRoomGateway {
 
     if (player.gameRoom !== null) {
       if (this.sessions.has(player.gameRoom.code)) {
-        this.sessions
-          .get(player.gameRoom.code)
-          .players.forEach((thisPlayer, index) => {
-            if (thisPlayer.username === player.username) {
-              this.sessions.get(player.gameRoom.code).players.splice(index, 1);
-            }
-          });
-      }
-
-      this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
-        client.to(thisPlayer.id).emit('join-response', {
-          status: 'success',
-          isCreator: player.gameRoom.fk_creator_player_id === result.userId,
-          players: this.sessions.get(player.gameRoom.code).players,
+        const session = this.sessions.get(player.gameRoom.code);
+        
+        session.players.forEach((thisPlayer, index) => {
+          if (thisPlayer.username === player.username) {
+            session.players.splice(index, 1);
+          }
         });
-      });
+          
+        if (session.players.length === 0) {
+          this.sessions.delete(player.gameRoom.code);
+
+          player.gameRoom.players.forEach(async thisPlayer => {
+            await this.gameRoomService.leave(thisPlayer.id);
+          });
+
+          await this.gameRoomService.delete(player.gameRoom.code);
+        } else {
+          session.players.forEach((thisPlayer) => {
+            client.to(thisPlayer.id).emit('leave-response', {
+              players: this.sessions.get(player.gameRoom.code).players,
+            });
+          });
+        }
+      }
     }
   }
 
@@ -279,19 +287,20 @@ export class GameRoomGateway {
     await this.gameRoomService.leave(data.playerId);
 
     if (this.sessions.has(data.code)) {
-      this.sessions.get(data.code).players.forEach((thisPlayer, index) => {
+      const session = this.sessions.get(data.code);
+      session.players.forEach((thisPlayer, index) => {
         if (thisPlayer.id === client.id) {
-          this.sessions.get(data.code).players.splice(index, 1);
+          session.players.splice(index, 1);
         }
       });
 
-      if (this.sessions.get(data.code).players.length === 0) {
+      if (session.players.length === 0) {
         this.sessions.delete(data.code);
         await this.gameRoomService.delete(data.code);
       } else {
-        this.sessions.get(data.code).players.forEach((thisPlayer) => {
+        session.players.forEach((thisPlayer) => {
           client.to(thisPlayer.id).emit('leave-response', {
-            players: this.sessions.get(data.code).players,
+            players: session.players,
           });
         });
       }

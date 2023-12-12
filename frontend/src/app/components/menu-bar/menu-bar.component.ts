@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { JwtService } from 'src/app/services/jwt.service';
+import { WebsocketService } from 'src/app/services/websocket.service';
 
 @Component({
   selector: 'app-menu-bar',
@@ -15,7 +16,8 @@ export class MenuBarComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly websocketService: WebsocketService,
   ) {
     this.authService.isUserLoggedIn.subscribe((value) => {
       this.isAuthenticated = value;
@@ -31,6 +33,7 @@ export class MenuBarComponent implements OnInit {
 
   logout() {
     this.authService.unauthenticate();
+    this.websocketService.disconnect();
     this.router.navigate(['auth', 'login']);
   }
 }

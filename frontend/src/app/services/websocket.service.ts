@@ -64,6 +64,10 @@ export class WebsocketService {
     this.socket.on('game-result', (data) => this.handleGameResult(data));
   }
 
+  disconnect() {
+    this.socket?.disconnect();
+  }
+
   createGame() {
     const playerId = this.jwtService.getPlayerId();
 
