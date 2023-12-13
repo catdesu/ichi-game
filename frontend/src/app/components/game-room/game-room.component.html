@@ -75,7 +75,7 @@
         <div id="player" [style]="username | playerTurnStyle: turnOrder">
             (You) ({{ playerHand.length }})
             <div class="player_hand">
-                <div *ngFor="let card of playerHand; let i = index" class="card {{ card }}"
+                <div *ngFor="let card of playerHand; let i = index" ngClass="card {{ card }}"
                     [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing"
                     (click)="playCard(card)">
                     <div class="bckg"></div>
@@ -112,6 +112,22 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div *ngIf="pause" class="overlay" [@fadeInOut]="show ? 'visible' : 'hidden'">
+    <div class="message">
+        <span class="text-7xl text-red-500">
+            Game paused
+        </span><br>
+        <div *ngIf="vote" class="mt-3">
+            <p-button (onClick)="voteFor('resume')"
+                styleClass="p-button-secondary mr-3" type="p-button" label="Resume game"></p-button>
+            <p-button (onClick)="voteFor('wait')"
+                styleClass="p-button-secondary" type="p-button" label="Wait for player"></p-button>
+        </div>
+        <p-button (onClick)="leaveGame()" icon="pi pi-arrow-circle-left"
+            styleClass="p-button-secondary mt-3" type="p-button" label="Leave game"></p-button>
     </div>
 </div>
 

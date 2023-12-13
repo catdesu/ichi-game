@@ -31,6 +31,9 @@ export class WebsocketService {
   public message = new BehaviorSubject<string>('');
   public winner = new BehaviorSubject<string>('');
   public direction = new BehaviorSubject<boolean>(true);
+  public pause = new BehaviorSubject<boolean>(false);
+  public vote = new BehaviorSubject<boolean>(false);
+  public playerVote = new BehaviorSubject<[]>([]);
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -62,6 +65,7 @@ export class WebsocketService {
     this.socket.on('play-card-response', (data) => this.handlePlayCard(data));
     this.socket.on('draw-card-response', (data) => this.handleDrawCard(data));
     this.socket.on('game-result', (data) => this.handleGameResult(data));
+    this.socket.on('pause', (data) => this.handlePause(data));
   }
 
   disconnect() {
@@ -96,6 +100,12 @@ export class WebsocketService {
   }
 
   handleJoinGame(data: any) {
+    if (data.status && data.status === 'error') {
+      this.toastrService.error(data.message);
+    }
+
+    this.pause.next(data.pause);
+    this.vote.next(data.vote);
     this.joined.next(data.joined);
     this.code.next(data.code);
     this.players.next(data.players);
@@ -109,6 +119,7 @@ export class WebsocketService {
   }
 
   leaveGame() {
+    this.resetState();
     const playerId = this.jwtService.getPlayerId();
 
     if (playerId) {
@@ -202,6 +213,10 @@ export class WebsocketService {
     this.message.next(data.message);
   }
 
+  handlePause(data: any) {
+    this.pause.next(data.pause);
+    this.vote.next(data.vote);
+  }
 
   partialResetState() {
     this.started.next(false);
@@ -214,6 +229,8 @@ export class WebsocketService {
     this.winner.next('');
     this.message.next('');
     this.direction.next(true);
+    this.pause.next(false);
+    this.vote.next(false);
   }
 
   resetState() {
@@ -230,5 +247,7 @@ export class WebsocketService {
     this.winner.next('');
     this.message.next('');
     this.direction.next(true);
+    this.pause.next(false);
+    this.vote.next(false);
   }
 }

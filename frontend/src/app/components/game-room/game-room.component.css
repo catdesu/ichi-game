@@ -254,10 +254,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0;
 }
 
 .message {
+  width: auto;
+  height: auto;
   padding: 20px;
   border-radius: 8px;
   text-align: center;

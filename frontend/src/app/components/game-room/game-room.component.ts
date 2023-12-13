@@ -23,7 +23,7 @@ import { WebsocketService } from 'src/app/services/websocket.service';
       })),
       transition('visible => hidden', animate('500ms ease-out')),
       transition('hidden => visible', animate('500ms ease-in')),
-    ]),
+    ]),   
   ],
 })
 export class GameRoomComponent implements OnInit {
@@ -52,6 +52,8 @@ export class GameRoomComponent implements OnInit {
   public winner: string = '';
   public show: boolean = false;
   public direction: boolean = false;
+  public pause: boolean = false;
+  public vote: boolean = false;
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -124,6 +126,22 @@ export class GameRoomComponent implements OnInit {
       // Reverse direction true = reversed, false = normal
       this.direction = !direction;
     });
+    
+    this.websocketService.pause.subscribe((pause) => {
+      this.pause = pause;
+
+      if (pause) {
+        this.show = true;
+      } else {
+        setTimeout(() => {
+          this.show = false;
+        }, 500);
+      }
+    });
+    
+    this.websocketService.vote.subscribe((vote) => {
+      this.vote = vote;
+    });
   }
 
   createGame() {
@@ -177,5 +195,9 @@ export class GameRoomComponent implements OnInit {
     if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
       this.websocketService.drawCard();
     }
+  }
+
+  voteFor(vote: string) {
+
   }
 }
