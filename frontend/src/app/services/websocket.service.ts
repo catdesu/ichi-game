@@ -119,7 +119,6 @@ export class WebsocketService {
   }
 
   leaveGame() {
-    this.resetState();
     const playerId = this.jwtService.getPlayerId();
 
     if (playerId) {

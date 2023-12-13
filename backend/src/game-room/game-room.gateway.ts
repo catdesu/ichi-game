@@ -25,7 +25,7 @@ import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 
 @WebSocketGateway({
   namespace: 'game-room',
-  cors: 'localhost:4200',
+  cors: process.env.CLIENT_URL,
   transports: ['websocket'],
 })
 export class GameRoomGateway {
@@ -72,19 +72,14 @@ export class GameRoomGateway {
           players: [sessionPlayer],
         });
       } else {
-        if (
-          !this.sessions.get(player.gameRoom.code).players.includes({
-            id: client.id,
-            isCreator: isCreator,
-            username: player.username,
-          })
-        ) {
-          this.sessions.get(player.gameRoom.code).players.push({
-            id: client.id,
-            isCreator: isCreator,
-            username: player.username,
-            handCards: player.hand_cards,
-          });
+        const sessionPlayer: playersInterface = {
+          id: client.id,
+          isCreator: isCreator,
+          username: player.username,
+        };
+        if (!this.sessions.get(player.gameRoom.code).players.includes(sessionPlayer)) {
+          sessionPlayer.handCards = player.hand_cards;
+          this.sessions.get(player.gameRoom.code).players.push(sessionPlayer);
         }
       }
 
@@ -134,7 +129,7 @@ export class GameRoomGateway {
             : otherPlayers;
         }
 
-        const playerSession = {
+        const joinResponse = {
           status: 'success',
           code: player.gameRoom.code,
           players: this.sessions.get(player.gameRoom.code).players,
@@ -151,9 +146,9 @@ export class GameRoomGateway {
         };
 
         if (client.id === thisPlayer.id) {
-          client.emit('join-response', playerSession);
+          client.emit('join-response', joinResponse);
         } else {
-          client.to(thisPlayer.id).emit('join-response', playerSession);
+          client.to(thisPlayer.id).emit('join-response', joinResponse);
         }
       });
     }
@@ -275,24 +270,20 @@ export class GameRoomGateway {
       isCreator: false,
       username: player.username,
     };
-
-    session.players.push(sessionPlayer);
-
-    session.players.forEach((player) => {
-      client.to(player.id).emit('join-response', {
-        status: 'success',
-        code: code,
-        players: session.players,
-        joined: true,
-      });
-    });
-
-    client.emit('join-response', {
+    const joinResponse = {
       status: 'success',
       code: code,
       players: session.players,
       joined: true,
+    };
+
+    session.players.push(sessionPlayer);
+
+    session.players.forEach((player) => {
+      client.to(player.id).emit('join-response', joinResponse);
     });
+
+    client.emit('join-response', joinResponse);
   }
 
   @UseGuards(WsJwtGuard)
