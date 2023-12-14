@@ -54,6 +54,7 @@ export class GameRoomComponent implements OnInit {
   public direction: boolean = false;
   public pause: boolean = false;
   public vote: boolean = false;
+  public voteResult: {resume: number, wait: number} = { resume: 0, wait: 0 };
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -133,14 +134,16 @@ export class GameRoomComponent implements OnInit {
       if (pause) {
         this.show = true;
       } else {
-        setTimeout(() => {
-          this.show = false;
-        }, 500);
+        this.show = false;
       }
     });
     
     this.websocketService.vote.subscribe((vote) => {
       this.vote = vote;
+    });
+    
+    this.websocketService.voteResult.subscribe((voteResult) => {
+      this.voteResult = voteResult;
     });
   }
 
@@ -178,7 +181,7 @@ export class GameRoomComponent implements OnInit {
   }
 
   async playCard(cardName: string) {
-    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
+    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn && !this.pause) {
       if (this.playableCards.includes(cardName)) {
         if (['changeColorW', 'draw4W'].includes(cardName)) {
           const chosenColor = await this.colorDialogService.openColorDialog();
@@ -198,6 +201,6 @@ export class GameRoomComponent implements OnInit {
   }
 
   voteFor(vote: string) {
-
+    this.websocketService.voteFor(vote);
   }
 }

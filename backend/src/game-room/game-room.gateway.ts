@@ -9,7 +9,7 @@ import { GameRoomService } from './game-room.service';
 import { SessionsInterface } from './interfaces/session.interface';
 import { playersInterface } from './interfaces/players.interface';
 import { GameRoomStatus } from './enums/game-room-status.enum';
-import { ROOM_MAX_PLAYERS } from 'src/constants';
+import { ROOM_MAX_PLAYERS, ROOM_MIN_PLAYERS } from 'src/constants';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -22,6 +22,7 @@ import { UpdateGameStateDto } from 'src/game-states/dto/update-game-state.dto';
 import { playerCardsCountInterface } from './interfaces/player-cards-count.interface';
 import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
 import { UpdateGameRoomDto } from './dto/update-game-room.dto';
+import { Player } from 'src/players/entities/player.entity';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -54,6 +55,8 @@ export class GameRoomGateway {
     let turnOrder: playerTurnOrderInterface[] = [];
     let orderedPlayers: playerCardsCountInterface[] = [];
     let direction: boolean = true;
+    let pause: boolean = false;
+    let vote: boolean = false;
 
     if (player.gameRoom !== null) {
       const isCreator = player.gameRoom.fk_creator_player_id === result.userId;
@@ -109,9 +112,11 @@ export class GameRoomGateway {
         turnOrder = gameState.turn_order;
         handCards = player.hand_cards;
         direction = gameState.is_forward_direction;
+        pause = player.gameRoom.players.length !== session.players.length;
+        vote = pause && player.gameRoom.players.length > ROOM_MIN_PLAYERS;
       }
 
-      this.sessions.get(player.gameRoom.code).players.forEach((thisPlayer) => {
+      session.players.forEach((thisPlayer) => {
         if (player.hand_cards) {
           playableCards = this.gameRoomService.getPlayableCards(
             thisPlayer.handCards,
@@ -141,8 +146,8 @@ export class GameRoomGateway {
           playable_cards: playableCards,
           turnOrder: turnOrder,
           direction: direction,
-          pause: false,
-          vote: false,
+          pause: pause,
+          vote: vote,
         };
 
         if (client.id === thisPlayer.id) {
@@ -787,6 +792,76 @@ export class GameRoomGateway {
           }
         }
       }
+    }
+  }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('vote')
+  async handleVote(client: Socket, data: { code: string, vote: string }): Promise<void> {
+    if (this.sessions.has(data.code)) {
+      const session = this.sessions.get(data.code);
+      const player = session.players.find(thisPlayer => thisPlayer.id === client.id);
+
+      if (!session.voteResult) {
+        session.voteResult = {
+          resume: 0,
+          wait: 0,
+        };
+      }
+
+      switch (data.vote) {
+        case 'resume':
+          if (!player.hasVotedFor) {
+            session.voteResult.resume++;
+          } else if (player.hasVotedFor !== 'resume') {
+            session.voteResult.wait--;
+            session.voteResult.resume++;
+          }
+          break;
+
+        case 'wait':
+          if (!player.hasVotedFor) {
+            session.voteResult.wait++;
+          } else if (player.hasVotedFor !== 'wait') {
+            session.voteResult.resume--;
+            session.voteResult.wait++;
+          }
+          break;
+      }
+
+      player.hasVotedFor = data.vote;
+
+      const numberOfVotes: number = session.voteResult.resume + session.voteResult.wait;
+
+      if (numberOfVotes === session.players.length) {
+        if (session.voteResult.resume > session.voteResult.wait) {
+          // todo: remove missing player from the game room and add his cards to the deck
+          const players = await this.gameRoomService.getPlayers(data.code);
+          const gameState = await this.gameStatesService.findOneByGameRoomId(players[0].fk_game_room_id);
+          const missingPlayersCards = [];
+
+          const missingPlayers: Player[] = players.filter(thisPlayer => !session.players.some(remainingPlayer => remainingPlayer.username === thisPlayer.username));
+          const updatePlayerDto: UpdatePlayerDto = {
+            fk_game_room_id: null,
+            hand_cards: null,
+          };
+
+          missingPlayers.forEach(async missingPlayer => {
+            missingPlayersCards.push(...missingPlayer.hand_cards);
+            await this.playerService.update(missingPlayer.id, updatePlayerDto);
+          });
+
+          // todo: manage next player turn if necessary and send a message with newer data to the frontend
+        }
+      }
+
+      session.players.forEach(thisPlayer => {
+        if (client.id === thisPlayer.id) {
+          client.emit('vote-response', session.voteResult);
+        } else {
+          client.to(thisPlayer.id).emit('vote-response', session.voteResult);
+        }
+      });
     }
   }
 }

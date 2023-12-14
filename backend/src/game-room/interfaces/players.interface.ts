@@ -3,4 +3,5 @@ export interface playersInterface {
   isCreator: boolean;
   username: string;
   handCards?: string[];
+  hasVotedFor?: string;
 }

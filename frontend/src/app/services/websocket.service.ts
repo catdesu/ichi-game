@@ -33,7 +33,7 @@ export class WebsocketService {
   public direction = new BehaviorSubject<boolean>(true);
   public pause = new BehaviorSubject<boolean>(false);
   public vote = new BehaviorSubject<boolean>(false);
-  public playerVote = new BehaviorSubject<[]>([]);
+  public voteResult = new BehaviorSubject<{resume: number, wait: number}>({resume: 0, wait: 0});
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -66,6 +66,7 @@ export class WebsocketService {
     this.socket.on('draw-card-response', (data) => this.handleDrawCard(data));
     this.socket.on('game-result', (data) => this.handleGameResult(data));
     this.socket.on('pause', (data) => this.handlePause(data));
+    this.socket.on('vote-response', (data) => this.handleVoteFor(data));
   }
 
   disconnect() {
@@ -217,6 +218,19 @@ export class WebsocketService {
     this.vote.next(data.vote);
   }
 
+  voteFor(vote: string) {
+    const code = this.code.value;
+    const voteMessage = {
+      vote, code,
+    };
+    this.socket?.emit('vote', voteMessage);
+  }
+
+  handleVoteFor(data: any) {
+    this.voteResult.next(data);
+    this.voteResult.next(data);
+  }
+
   partialResetState() {
     this.started.next(false);
     this.playerHand.next([]);
@@ -230,6 +244,7 @@ export class WebsocketService {
     this.direction.next(true);
     this.pause.next(false);
     this.vote.next(false);
+    this.voteResult.next({resume: 0, wait: 0});
   }
 
   resetState() {
@@ -248,5 +263,6 @@ export class WebsocketService {
     this.direction.next(true);
     this.pause.next(false);
     this.vote.next(false);
+    this.voteResult.next({resume: 0, wait: 0});
   }
 }

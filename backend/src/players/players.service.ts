@@ -61,6 +61,7 @@ export class PlayersService {
     if (!player) throw new Error('Player not found');
 
     player.fk_game_room_id = updatePlayerDto.fk_game_room_id;
+    player.hand_cards = updatePlayerDto.hand_cards;
 
     return await this.playerRepository.save(player);
   }

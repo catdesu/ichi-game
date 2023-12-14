@@ -6,4 +6,5 @@ export interface SessionsInterface {
   players: playersInterface[];
   deck?: string[];
   discardPile?: string[];
+  voteResult?: any;
 }
