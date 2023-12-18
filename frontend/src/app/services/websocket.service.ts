@@ -84,7 +84,7 @@ export class WebsocketService {
   }
 
   handleCreateGame(data: any) {
-    this.joined.next(true);
+    this.joined.next(data.joined);
     this.code.next(data.code);
     this.players.next(data.players);
   }
@@ -227,8 +227,27 @@ export class WebsocketService {
   }
 
   handleVoteFor(data: any) {
-    this.voteResult.next(data);
-    this.voteResult.next(data);
+    this.voteResult.next(data.voteResult);
+
+    if (data.players) {
+      this.players.next(data.players);
+    }
+    
+    if (data.turnOrder) {
+      this.turnOrder.next(data.turnOrder);
+    }
+    
+    if (data.playerCards) {
+      this.playerCards.next(data.playerCards);
+    }
+    
+    if (data.pause) {
+      this.pause.next(data.pause);
+    }
+    
+    if (data.vote) {
+      this.vote.next(data.vote);
+    }
   }
 
   partialResetState() {
