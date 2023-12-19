@@ -831,6 +831,18 @@ export class GameRoomGateway {
 
       const numberOfVotes: number = session.voteResult.resume + session.voteResult.wait;
 
+      voteResponse.voteResult = session.voteResult;
+  
+      session.players.forEach(thisPlayer => {
+        if (client.id === thisPlayer.id) {
+          client.emit('vote-response', voteResponse);
+        } else {
+          client.to(thisPlayer.id).emit('vote-response', voteResponse);
+        }
+      });
+
+      console.log(voteResponse);
+
       if (numberOfVotes === session.players.length) {
         if (session.voteResult.resume > session.voteResult.wait) {
           const players = await this.gameRoomService.getPlayers(data.code);
@@ -922,16 +934,6 @@ export class GameRoomGateway {
             }
           });
         }
-      } else {
-        voteResponse.voteResult = session.voteResult;
-  
-        session.players.forEach(thisPlayer => {
-          if (client.id === thisPlayer.id) {
-            client.emit('vote-response', voteResponse);
-          } else {
-            client.to(thisPlayer.id).emit('vote-response', voteResponse);
-          }
-        });
       }
     }
   }

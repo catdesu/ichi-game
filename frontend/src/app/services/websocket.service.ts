@@ -241,11 +241,11 @@ export class WebsocketService {
       this.playerCards.next(data.playerCards);
     }
     
-    if (data.pause) {
+    if (data.pause !== undefined) {
       this.pause.next(data.pause);
     }
     
-    if (data.vote) {
+    if (data.vote !== undefined) {
       this.vote.next(data.vote);
     }
   }
