@@ -49,10 +49,10 @@ export class RegisterComponent {
 
     this.playerService.create(registerDto).subscribe({
       error: (data) => {
-        this.toastrService.error('Registration failed');
+        this.toastrService.error(data.error.message);
       },
-      next: (data) => {
-        this.toastrService.success('Registration successful');
+      next: () => {
+        this.toastrService.success('Successfully registered.');
       },
       complete: () => {
         this.router.navigate(['auth', 'login']);

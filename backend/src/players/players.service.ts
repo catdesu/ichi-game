@@ -21,9 +21,8 @@ export class PlayersService {
   findOneById(id: number) {
     const player = this.playerRepository.findOne({ where: { id: id }, relations: ['gameRoom', 'gameRoom.players'] });
 
-    if (!player) {
+    if (!player)
       throw new NotFoundException(`Player with ID ${id} not found`);
-    }
 
     return player;
   }
@@ -33,23 +32,30 @@ export class PlayersService {
       where: { username: username },
     });
 
-    if (!player) {
+    if (!player) 
       throw new NotFoundException(`Player with username ${username} not found`);
-    }
 
     return player;
   }
 
   async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
-    const player = new Player();
+    const playerExists = await this.playerRepository.findOne({
+      where: { username: createPlayerDto.username }
+    });
 
-    player.username = createPlayerDto.username;
-    player.password = await this.hashPassword(createPlayerDto.password);
-
-    try {
-      return await this.playerRepository.save(player);
-    } catch (error) {
-      throw new BadRequestException('Failed to create user.');
+    if (!playerExists) {
+      const player = new Player();
+  
+      player.username = createPlayerDto.username;
+      player.password = await this.hashPassword(createPlayerDto.password);
+  
+      try {
+        return await this.playerRepository.save(player);
+      } catch (error) {
+        throw new BadRequestException('Registration failed.');
+      }
+    } else {
+      throw new BadRequestException('Username already taken.');
     }
   }
 
@@ -58,7 +64,7 @@ export class PlayersService {
       where: { id: id },
     });
 
-    if (!player) throw new Error('Player not found');
+    if (!player) throw new NotFoundException('Player not found');
 
     player.fk_game_room_id = updatePlayerDto.fk_game_room_id;
     player.hand_cards = updatePlayerDto.hand_cards;
@@ -71,7 +77,7 @@ export class PlayersService {
       where: { username: username },
     });
 
-    if (!player) throw new Error('Player not found');
+    if (!player) throw new NotFoundException('Player not found');
 
     player.hand_cards = updatePlayerDto.hand_cards;
 

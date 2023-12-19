@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GameRoom } from './entities/game-room.entity';
@@ -28,13 +28,14 @@ export class GameRoomService {
     private readonly playersService: PlayersService,
   ) {}
 
-  async GetSessionPlayer(data: any): Promise<Player> {
-    const player = await this.playersService.findOneById(data.userId);
+  async findOneByCode(code: string): Promise<GameRoom> {
+    const gameRoom = await this.gameRoomRepository.findOne({
+      where: { code: code }
+    });
 
-    if (!player) {
-    }
+    if (!gameRoom) throw new NotFoundException('Game room not found.');
 
-    return player;
+    return gameRoom;
   }
 
   async create(
@@ -65,7 +66,7 @@ export class GameRoomService {
       where: { id: id },
     });
 
-    if (!gameRoom) throw new Error('Game room not found');
+    if (!gameRoom) throw new NotFoundException('Game room not found.');
 
     gameRoom.code = updateGameRoomDto.code;
     gameRoom.status = updateGameRoomDto.status;

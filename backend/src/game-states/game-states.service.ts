@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GameState } from './entities/game-state.entity';
 import { Repository } from 'typeorm';
@@ -17,7 +17,7 @@ export class GameStatesService {
       where: { fk_game_room_id: gameRoomId }
     });
 
-    if (!gameState) {}
+    if (!gameState) throw new NotFoundException('Game state not found.');
 
     return gameState;
   }
@@ -53,7 +53,7 @@ export class GameStatesService {
     try {
       return await this.gameStateRepository.save(gameState);
     } catch (error) {
-      throw new BadRequestException('Failed to create game state.');
+      throw new BadRequestException('Failed to update game state.');
     }
   }
 

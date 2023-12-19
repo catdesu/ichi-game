@@ -45,7 +45,7 @@ export class GameRoomGateway {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
 
-    const player = await this.gameRoomService.GetSessionPlayer(result);
+    const player = await this.playerService.findOneById(result.userId);
     const playerCards: playerCardsCountInterface[] = [];
     let handCards: string[] = [];
     let discardPile: string = '';
@@ -162,7 +162,7 @@ export class GameRoomGateway {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
 
-    const player = await this.gameRoomService.GetSessionPlayer(result);
+    const player = await this.playerService.findOneById(result.userId);
 
     if (player.gameRoom !== null) {
       if (this.sessions.has(player.gameRoom.code)) {
@@ -229,6 +229,7 @@ export class GameRoomGateway {
         message: 'Game room created',
         players: this.sessions.get(gameRoom.code).players,
         code: gameRoom.code,
+        joined: true,
       });
     }
   }
@@ -244,7 +245,7 @@ export class GameRoomGateway {
     if (!this.sessions.has(code)) {
       client.emit('join-response', {
         status: 'error',
-        message: 'No game room found with this code!',
+        message: 'No game room found with this code.',
       });
       return;
     }
@@ -254,7 +255,7 @@ export class GameRoomGateway {
     if (session.status !== GameRoomStatus.Open) {
       client.emit('join-response', {
         status: 'error',
-        message: 'This game room has already started!',
+        message: 'This game room has already started.',
       });
       return;
     }
@@ -262,7 +263,7 @@ export class GameRoomGateway {
     if (session.players.length === ROOM_MAX_PLAYERS) {
       client.emit('join-response', {
         status: 'error',
-        message: 'This game room is already full!',
+        message: 'This game room is already full.',
       });
       return;
     }
@@ -293,7 +294,12 @@ export class GameRoomGateway {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave')
   async handleLeave(client: Socket, data: { code: string; playerId: number }) {
-    await this.gameRoomService.leave(data.playerId);
+    const updatePlayerDto: UpdatePlayerDto = {
+      fk_game_room_id: null,
+      hand_cards: null,
+    };
+
+    await this.playerService.update(data.playerId, updatePlayerDto);
 
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
@@ -304,8 +310,22 @@ export class GameRoomGateway {
       });
 
       if (session.players.length === 0) {
-        this.sessions.delete(data.code);
-        await this.gameRoomService.delete(data.code);
+        const players = await this.gameRoomService.getPlayers(data.code);
+        
+        players.forEach(async thisPlayer => {
+          await this.playerService.update(thisPlayer.id, updatePlayerDto);
+        });
+
+        const gameRoom = await this.gameRoomService.findOneByCode(data.code);
+        const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
+
+        console.log(gameRoom.players);
+
+        if (!gameRoom.players) {
+          await this.gameStatesService.delete(gameState.id);
+          this.sessions.delete(data.code);
+          await this.gameRoomService.delete(data.code);
+        }
       } else {
         session.players.forEach(thisPlayer => {
           client.to(thisPlayer.id).emit('leave-response', {
@@ -423,7 +443,7 @@ export class GameRoomGateway {
   async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
-    const player = await this.gameRoomService.GetSessionPlayer(result);
+    const player = await this.playerService.findOneById(result.userId);
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
@@ -663,7 +683,7 @@ export class GameRoomGateway {
   async handleDrawCard(client: Socket): Promise<void> {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
-    const player = await this.gameRoomService.GetSessionPlayer(result);
+    const player = await this.playerService.findOneById(result.userId);
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
@@ -840,8 +860,6 @@ export class GameRoomGateway {
           client.to(thisPlayer.id).emit('vote-response', voteResponse);
         }
       });
-
-      console.log(voteResponse);
 
       if (numberOfVotes === session.players.length) {
         if (session.voteResult.resume > session.voteResult.wait) {
