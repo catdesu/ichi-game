@@ -303,6 +303,7 @@ export class GameRoomGateway {
 
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
+      const isInProgress = session.status === GameRoomStatus.InProgress;
       session.players.forEach((thisPlayer, index) => {
         if (thisPlayer.id === client.id) {
           session.players.splice(index, 1);
@@ -317,12 +318,14 @@ export class GameRoomGateway {
         });
 
         const gameRoom = await this.gameRoomService.findOneByCode(data.code);
-        const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
-
-        console.log(gameRoom.players);
 
         if (!gameRoom.players) {
-          await this.gameStatesService.delete(gameState.id);
+          console.log(isInProgress, session.status);
+          if (isInProgress) {
+            const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
+            await this.gameStatesService.delete(gameState.id);
+          }
+
           this.sessions.delete(data.code);
           await this.gameRoomService.delete(data.code);
         }
@@ -357,6 +360,8 @@ export class GameRoomGateway {
           isPlayerTurn: index === 0,
           hasDrawnThisTurn: false,
         }));
+
+      session.status = GameRoomStatus.InProgress;
 
       session.players.forEach(thisPlayer => {
         let playerHand: string[] = [];
