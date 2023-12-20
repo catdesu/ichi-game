@@ -5,6 +5,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Tooltip } from 'primeng/tooltip';
 import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
 import { PlayerInterface } from 'src/app/interfaces/player.interface';
+import { ChallengeDialogService } from 'src/app/services/challenge-dialog.service';
 import { ColorDialogService } from 'src/app/services/color-dialog.service';
 import { JwtService } from 'src/app/services/jwt.service';
 import { WebsocketService } from 'src/app/services/websocket.service';
@@ -55,12 +56,13 @@ export class GameRoomComponent implements OnInit {
   public pause: boolean = false;
   public vote: boolean = false;
   public voteResult: {resume: number, wait: number} = { resume: 0, wait: 0 };
+  public challenge: {username: string, card: string} = {username: '', card: ''};
 
   constructor(
     private readonly websocketService: WebsocketService,
     private readonly jwtService: JwtService,
     private readonly colorDialogService: ColorDialogService,
-    private readonly toastrService: ToastrService,
+    private readonly challengeDialogService: ChallengeDialogService,
   ) {}
 
   ngOnInit(): void {
@@ -144,6 +146,14 @@ export class GameRoomComponent implements OnInit {
     
     this.websocketService.voteResult.subscribe((voteResult) => {
       this.voteResult = voteResult;
+    });
+    
+    this.websocketService.challenge.subscribe(async challenge => {
+      this.challenge = challenge;
+
+      if (challenge.username !== '' && challenge.card !== '') {
+        const isChallenging = await this.challengeDialogService.openChalengeDialog('Jin', 'oneB');
+      }
     });
   }
 

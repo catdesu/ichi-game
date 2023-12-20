@@ -23,6 +23,7 @@ import { ColorDialogComponent } from './components/color-dialog/color-dialog.com
 import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { GetCardSpacingPipe } from './pipes/get-card-spacing.pipe';
 import {TooltipModule} from 'primeng/tooltip';
+import { ChallengeDialogComponent } from './components/challenge-dialog/challenge-dialog.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import {TooltipModule} from 'primeng/tooltip';
     CardStylePipe,
     PlayerTurnStylePipe,
     ColorDialogComponent,
-    GetCardSpacingPipe
+    GetCardSpacingPipe,
+    ChallengeDialogComponent,
   ],
   imports: [
     BrowserModule,

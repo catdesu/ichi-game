@@ -62,12 +62,12 @@ export class GameStatesService {
   }
 
   switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState): GameState {
-      gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
-      gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
-      gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
-      gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
+    gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
+    gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
+    gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+    gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
 
-      return gameState;
+    return gameState;
   }
 
   async remakeDeckFromDiscardPile(gameState: GameState, topCard: string): Promise<GameState> {

@@ -1,0 +1,10 @@
+<div class="flex flex-column">
+    <p class="text-xl text-justify">
+        {{ username }} played a +4. If you think they have {{ card }} card in their hand.
+        You can challenge them for a chance to make them draw cards instead!
+    </p>
+    <div class="flex flex-row justify-content-evenly">
+        <p-button (click)="challenge(false)" label="Draw 4"></p-button>
+        <p-button pTooltip="Correct +0, Wrong +6" tooltipPosition="bottom" (click)="challenge(true)" label="Challenge"></p-button>
+    </div>
+</div>

@@ -195,7 +195,7 @@ export class GameRoomGateway {
               client.to(thisPlayer.id).emit('pause', playerSession);
             });
           } else {
-            await this.gameRoomService.leave(player.id);
+            // await this.gameRoomService.leave(player.id);
           }
 
           session.players.forEach(thisPlayer => {
@@ -530,35 +530,19 @@ export class GameRoomGateway {
                 break;
 
               case this.gameRoomService.drawFour:
-                if (gameState.deck.length < 4) {
-                  gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
+                // todo: send ask-challenge message to next player
+                const playerAskChallenge = session.players.find(thisPlayer => 
+                  thisPlayer.username === gameState.turn_order[nextPlayerIndex].username
+                );
+                const playerToChallenge = session.players.find(thisPlayer => 
+                  thisPlayer.username === gameState.turn_order[currentPlayerIndex].username
+                );
+                const previousCard = gameState.discard_pile[0];
+                const challengeSession = {
+                  username: playerToChallenge.username,
+                  previousCard: previousCard,
                 }
-                const drawFourCards = this.gameRoomService.getDrawedCards(
-                  4,
-                  gameState,
-                );
-                const playerDrawFour =
-                  await this.playerService.findOneByUsername(
-                    gameState.turn_order[nextPlayerIndex].username,
-                  );
-                nextPlayerIndex =
-                  this.gameRoomService.getNextPlayerIndex(
-                    nextPlayerIndex,
-                    gameState,
-                  );
-                playerDrawFour.hand_cards.push(...drawFourCards);
-                const newPlayerDrawFour =
-                  await this.playerService.updateByUsername(
-                    playerDrawFour.username,
-                    playerDrawFour,
-                  );
-                await this.playerService.update(
-                  playerDrawFour.id,
-                  playerDrawFour,
-                );
-                session.players.find(thisPlayer =>
-                    thisPlayer.username === newPlayerDrawFour.username,
-                ).handCards = newPlayerDrawFour.hand_cards;
+                client.to(playerAskChallenge.id).emit('ask-challenge', challengeSession);
                 break;
             }
 
@@ -925,6 +909,47 @@ export class GameRoomGateway {
           });
         }
       }
+    }
+  }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('challenge')
+  async handleChallenge(client: Socket, data: { isChallenging: boolean }): Promise<void> {
+    if (data.isChallenging) {
+      // todo: check previous players hand cards if he has another playable card beside draw 4
+      // todo: Has playable cards => he draws 4
+      // todo: does not have playable cards player that challenged draws 6
+    } else {
+      // todo: draw 4 and skip turn
+      /* if (gameState.deck.length < 4) {
+        gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
+      }
+      const drawFourCards = this.gameRoomService.getDrawedCards(
+        4,
+        gameState,
+      );
+      const playerDrawFour =
+        await this.playerService.findOneByUsername(
+          gameState.turn_order[nextPlayerIndex].username,
+        );
+      nextPlayerIndex =
+        this.gameRoomService.getNextPlayerIndex(
+          nextPlayerIndex,
+          gameState,
+        );
+      playerDrawFour.hand_cards.push(...drawFourCards);
+      const newPlayerDrawFour =
+        await this.playerService.updateByUsername(
+          playerDrawFour.username,
+          playerDrawFour,
+        );
+      await this.playerService.update(
+        playerDrawFour.id,
+        playerDrawFour,
+      );
+      session.players.find(thisPlayer =>
+          thisPlayer.username === newPlayerDrawFour.username,
+      ).handCards = newPlayerDrawFour.hand_cards; */
     }
   }
 }

@@ -34,6 +34,7 @@ export class WebsocketService {
   public pause = new BehaviorSubject<boolean>(false);
   public vote = new BehaviorSubject<boolean>(false);
   public voteResult = new BehaviorSubject<{resume: number, wait: number}>({resume: 0, wait: 0});
+  public challenge = new BehaviorSubject<{username: string, card: string}>({username: '', card: ''});
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -67,6 +68,7 @@ export class WebsocketService {
     this.socket.on('game-result', (data) => this.handleGameResult(data));
     this.socket.on('pause', (data) => this.handlePause(data));
     this.socket.on('vote-response', (data) => this.handleVoteFor(data));
+    this.socket.on('ask-challenge', (data) => this.handleAskChallenge(data));
   }
 
   disconnect() {
@@ -248,6 +250,10 @@ export class WebsocketService {
     if (data.vote !== undefined) {
       this.vote.next(data.vote);
     }
+  }
+
+  handleAskChallenge(data: {username: string, card: string}) {
+    this.challenge.next(data);
   }
 
   partialResetState() {
