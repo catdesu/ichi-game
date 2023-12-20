@@ -194,6 +194,8 @@ export class GameRoomGateway {
             session.players.forEach(thisPlayer => {
               client.to(thisPlayer.id).emit('pause', playerSession);
             });
+          } else {
+            await this.gameRoomService.leave(player.id);
           }
 
           session.players.forEach(thisPlayer => {
