@@ -60,4 +60,38 @@ export class GameStatesService {
   async delete(id: number) {
     return await this.gameStateRepository.delete({ id: id });
   }
+
+  switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState): GameState {
+      gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
+      gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
+      gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+      gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
+
+      return gameState;
+  }
+
+  async remakeDeckFromDiscardPile(gameState: GameState, topCard: string): Promise<GameState> {
+    const newDeck = [...gameState.discard_pile];
+    const newDiscardPile = [topCard];
+
+    newDeck.forEach((card, index) => {
+      if (['changeColor', 'draw4'].includes(card.slice(0, -1))) {
+        newDeck[index] = card.slice(0, -1) + 'W';
+      }
+    });
+
+    newDeck.shift();
+    newDeck.sort(() => Math.random() - 0.5);
+
+    const updateGameStateDto: UpdateGameStateDto = {
+      deck: newDeck,
+      discard_pile: newDiscardPile,
+      turn_order: gameState.turn_order,
+    };
+
+    return await this.update(
+      gameState.id,
+      updateGameStateDto,
+    );
+  }
 }

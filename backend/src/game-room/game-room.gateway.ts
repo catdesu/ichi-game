@@ -22,6 +22,7 @@ import { playerCardsCountInterface } from './interfaces/player-cards-count.inter
 import { playerTurnOrderInterface } from './interfaces/player-turn-order.interface';
 import { UpdateGameRoomDto } from './dto/update-game-room.dto';
 import { Player } from 'src/players/entities/player.entity';
+import { GameState } from 'src/game-states/entities/game-state.entity';
 
 @WebSocketGateway({
   namespace: 'game-room',
@@ -320,7 +321,6 @@ export class GameRoomGateway {
         const gameRoom = await this.gameRoomService.findOneByCode(data.code);
 
         if (!gameRoom.players) {
-          console.log(isInProgress, session.status);
           if (isInProgress) {
             const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
             await this.gameStatesService.delete(gameState.id);
@@ -452,7 +452,7 @@ export class GameRoomGateway {
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
-      const gameState = await this.gameStatesService.findOneByGameRoomId(
+      let gameState = await this.gameStatesService.findOneByGameRoomId(
         player.gameRoom.id,
       );
 
@@ -476,21 +476,11 @@ export class GameRoomGateway {
               gameState,
             );
 
-            const switchPlayerTurn = (
-              currentIndex: number,
-              nextIndex: number,
-            ): void => {
-              gameState.turn_order[currentIndex].isPlayerTurn = false;
-              gameState.turn_order[currentIndex].hasDrawnThisTurn = false;
-              gameState.turn_order[nextIndex].isPlayerTurn = true;
-              gameState.turn_order[nextIndex].hasDrawnThisTurn = false;
-            };
+            if (['changeColor', 'draw4'].includes(data.card.slice(0, -1))) {
+              playedCard = data.card.slice(0, -1) + 'W';
+            }
 
             switch (cardEffect) {
-              case this.gameRoomService.changeColor:
-                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
-                break;
-
               case this.gameRoomService.reverseTurnOrder:
                 gameState.is_forward_direction =
                   !gameState.is_forward_direction;
@@ -498,19 +488,20 @@ export class GameRoomGateway {
                   currentPlayerIndex,
                   gameState,
                 );
-                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
                 break;
 
               case this.gameRoomService.skipTurn:
-                const afterSkippedPlayerIndex =
+                nextPlayerIndex =
                   this.gameRoomService.getNextPlayerIndex(
                     nextPlayerIndex,
                     gameState,
                   );
-                switchPlayerTurn(currentPlayerIndex, afterSkippedPlayerIndex);
                 break;
 
               case this.gameRoomService.drawTwo:
+                if (gameState.deck.length < 2) {
+                  gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
+                }
                 const drawTwoCards = this.gameRoomService.getDrawedCards(
                   2,
                   gameState,
@@ -525,7 +516,7 @@ export class GameRoomGateway {
                     playerDrawTwo.username,
                     playerDrawTwo,
                   );
-                const afterDrawTwoPlayerIndex =
+                nextPlayerIndex =
                   this.gameRoomService.getNextPlayerIndex(
                     nextPlayerIndex,
                     gameState,
@@ -534,10 +525,12 @@ export class GameRoomGateway {
                   thisPlayer =>
                     thisPlayer.username === newPlayerDrawTwo.username,
                 ).handCards = newPlayerDrawTwo.hand_cards;
-                switchPlayerTurn(currentPlayerIndex, afterDrawTwoPlayerIndex);
                 break;
 
               case this.gameRoomService.drawFour:
+                if (gameState.deck.length < 4) {
+                  gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
+                }
                 const drawFourCards = this.gameRoomService.getDrawedCards(
                   4,
                   gameState,
@@ -545,6 +538,11 @@ export class GameRoomGateway {
                 const playerDrawFour =
                   await this.playerService.findOneByUsername(
                     gameState.turn_order[nextPlayerIndex].username,
+                  );
+                nextPlayerIndex =
+                  this.gameRoomService.getNextPlayerIndex(
+                    nextPlayerIndex,
+                    gameState,
                   );
                 playerDrawFour.hand_cards.push(...drawFourCards);
                 const newPlayerDrawFour =
@@ -559,19 +557,11 @@ export class GameRoomGateway {
                 session.players.find(thisPlayer =>
                     thisPlayer.username === newPlayerDrawFour.username,
                 ).handCards = newPlayerDrawFour.hand_cards;
-                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
-                break;
-
-              case this.gameRoomService.default:
-                switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
                 break;
             }
 
+            gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
             gameState.discard_pile.unshift(data.card);
-
-            if (['changeColor', 'draw4'].includes(data.card.slice(0, -1))) {
-              playedCard = data.card.slice(0, -1) + 'W';
-            }
 
             const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
 
@@ -695,7 +685,7 @@ export class GameRoomGateway {
       const gameState = await this.gameStatesService.findOneByGameRoomId(
         player.gameRoom.id,
       );
-      let newGameState;
+      let newGameState: GameState;
 
       if (gameState) {
         const playerTurnOrderIndex = gameState.turn_order.findIndex(
@@ -746,22 +736,7 @@ export class GameRoomGateway {
             }
 
             if (gameState.deck.length === 0) {
-              const newDeck = [...gameState.discard_pile];
-              const newDiscardPile = [topCard];
-
-              newDeck.shift();
-              newDeck.sort(() => Math.random() - 0.5);
-
-              const updateGameStateDto: UpdateGameStateDto = {
-                deck: newDeck,
-                discard_pile: newDiscardPile,
-                turn_order: gameState.turn_order,
-              };
-
-              newGameState = await this.gameStatesService.update(
-                gameState.id,
-                updateGameStateDto,
-              );
+              newGameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
             } else {
               const updateGameStateDto: UpdateGameStateDto = {
                 deck: gameState.deck,
@@ -869,13 +844,13 @@ export class GameRoomGateway {
       if (numberOfVotes === session.players.length) {
         if (session.voteResult.resume > session.voteResult.wait) {
           const players = await this.gameRoomService.getPlayers(data.code);
-          const gameState = await this.gameStatesService.findOneByGameRoomId(players[0].fk_game_room_id);
+          let gameState = await this.gameStatesService.findOneByGameRoomId(players[0].fk_game_room_id);
           const missingPlayersCards = [];
           let otherPlayers: playerCardsCountInterface[] = [];
           let orderedPlayers: playerCardsCountInterface[] = [];
           
           const missingPlayers: Player[] = players.filter(thisPlayer => !session.players.some(remainingPlayer => remainingPlayer.username === thisPlayer.username));
-          const isMissingPlayersTurn = missingPlayers.filter(thisPlayer => gameState.turn_order.some(remainingPlayer => remainingPlayer.username === thisPlayer.username && remainingPlayer.isPlayerTurn));
+          const missingPlayersTurn = missingPlayers.filter(thisPlayer => gameState.turn_order.some(remainingPlayer => remainingPlayer.username === thisPlayer.username && remainingPlayer.isPlayerTurn));
           const updatePlayerDto: UpdatePlayerDto = {
             fk_game_room_id: null,
             hand_cards: null,
@@ -883,26 +858,16 @@ export class GameRoomGateway {
 
           session.voteResult = { resume: 0, wait: 0 };
 
-          if (isMissingPlayersTurn.length > 0) {
+          if (missingPlayersTurn.length > 0) {
             const currentPlayerIndex = gameState.turn_order.findIndex(
-              thisPlayer => thisPlayer.username === isMissingPlayersTurn[0].username,
+              thisPlayer => thisPlayer.username === missingPlayersTurn[0].username,
             );
             let nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(
               currentPlayerIndex,
               gameState,
             );
 
-            const switchPlayerTurn = (
-              currentIndex: number,
-              nextIndex: number,
-            ): void => {
-              gameState.turn_order[currentIndex].isPlayerTurn = false;
-              gameState.turn_order[currentIndex].hasDrawnThisTurn = false;
-              gameState.turn_order[nextIndex].isPlayerTurn = true;
-              gameState.turn_order[nextIndex].hasDrawnThisTurn = false;
-            };
-
-            switchPlayerTurn(currentPlayerIndex, nextPlayerIndex);
+            gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
           }
 
           missingPlayers.forEach(async missingPlayer => {
