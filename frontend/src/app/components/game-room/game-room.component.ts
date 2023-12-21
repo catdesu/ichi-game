@@ -56,7 +56,7 @@ export class GameRoomComponent implements OnInit {
   public pause: boolean = false;
   public vote: boolean = false;
   public voteResult: {resume: number, wait: number} = { resume: 0, wait: 0 };
-  public challenge: {username: string, card: string} = {username: '', card: ''};
+  public challenge: {username: string, previousCard: string} = {username: '', previousCard: ''};
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -151,8 +151,9 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.challenge.subscribe(async challenge => {
       this.challenge = challenge;
 
-      if (challenge.username !== '' && challenge.card !== '') {
-        const isChallenging = await this.challengeDialogService.openChalengeDialog('Jin', 'oneB');
+      if (challenge.username !== '' && challenge.previousCard !== '') {
+        const isChallenging = await this.challengeDialogService.openChalengeDialog(challenge.username, challenge.previousCard);
+        this.websocketService.challengePlayer(isChallenging);
       }
     });
   }

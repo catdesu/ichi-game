@@ -469,6 +469,7 @@ export class GameRoomGateway {
 
           if (this.gameRoomService.getPlayableCard(data.card, topCard)) {
             const cardEffect = this.gameRoomService.getCardEffect(data.card);
+            let askChallenge: boolean = false;
 
             const currentPlayerIndex = gameState.turn_order.findIndex(
               (player) => player.isPlayerTurn,
@@ -530,7 +531,7 @@ export class GameRoomGateway {
                 break;
 
               case this.gameRoomService.drawFour:
-                // todo: send ask-challenge message to next player
+                askChallenge = true;
                 const playerAskChallenge = session.players.find(thisPlayer => 
                   thisPlayer.username === gameState.turn_order[nextPlayerIndex].username
                 );
@@ -546,7 +547,7 @@ export class GameRoomGateway {
                 break;
             }
 
-            gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
+            gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState, askChallenge);
             gameState.discard_pile.unshift(data.card);
 
             const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
@@ -915,41 +916,112 @@ export class GameRoomGateway {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('challenge')
   async handleChallenge(client: Socket, data: { isChallenging: boolean }): Promise<void> {
+    const token = client.handshake.auth.token;
+    const result = this.jwtService.decode(token);
+
+    const player = await this.playerService.findOneById(result.userId);
+    const session = this.sessions.get(player.gameRoom.code);
+    let gameState = await this.gameStatesService.findOneByGameRoomId(player.fk_game_room_id);
+    const previousTopCard = gameState.discard_pile[1];
+    let newPlayerDrawCards: Player;
+    let playerToDrawIndex: number;
+    let drawCards: string[];
+
+    const currentPlayerIndex = gameState.turn_order.findIndex(
+      thisPlayer => thisPlayer.username === player.username,
+    );
+    
+    let nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(
+      currentPlayerIndex,
+      gameState,
+    );
+
+    gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
+
+    if (gameState.deck.length <= 5) {
+      gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, previousTopCard);
+    }
+
     if (data.isChallenging) {
-      // todo: check previous players hand cards if he has another playable card beside draw 4
-      // todo: Has playable cards => he draws 4
-      // todo: does not have playable cards player that challenged draws 6
-    } else {
-      // todo: draw 4 and skip turn
-      /* if (gameState.deck.length < 4) {
-        gameState = await this.gameStatesService.remakeDeckFromDiscardPile(gameState, topCard);
-      }
-      const drawFourCards = this.gameRoomService.getDrawedCards(
-        4,
+      gameState.is_forward_direction = !gameState.is_forward_direction;
+      const previousPlayerIndex = this.gameRoomService.getNextPlayerIndex(
+        currentPlayerIndex,
         gameState,
       );
-      const playerDrawFour =
-        await this.playerService.findOneByUsername(
-          gameState.turn_order[nextPlayerIndex].username,
-        );
-      nextPlayerIndex =
-        this.gameRoomService.getNextPlayerIndex(
-          nextPlayerIndex,
-          gameState,
-        );
-      playerDrawFour.hand_cards.push(...drawFourCards);
-      const newPlayerDrawFour =
-        await this.playerService.updateByUsername(
-          playerDrawFour.username,
-          playerDrawFour,
-        );
-      await this.playerService.update(
-        playerDrawFour.id,
-        playerDrawFour,
-      );
-      session.players.find(thisPlayer =>
-          thisPlayer.username === newPlayerDrawFour.username,
-      ).handCards = newPlayerDrawFour.hand_cards; */
+      gameState.is_forward_direction = !gameState.is_forward_direction;
+
+      const previousPlayerCards = session.players.find(thisPlayer => thisPlayer.username === gameState.turn_order[previousPlayerIndex].username).handCards;
+      const playableCards = this.gameRoomService.getPlayableCards(previousPlayerCards, previousTopCard)
+
+      if (playableCards.length > 0 && playableCards.some(card => card !== 'draw4W')) {
+        // Won the challenge
+        drawCards = this.gameRoomService.getDrawedCards(4, gameState);
+        playerToDrawIndex = previousPlayerIndex;
+      } else {
+        // Lost the challenge
+        drawCards = this.gameRoomService.getDrawedCards(6, gameState);
+        playerToDrawIndex = currentPlayerIndex;
+      }
+    } else {
+      drawCards = this.gameRoomService.getDrawedCards(4, gameState);
+      playerToDrawIndex = currentPlayerIndex;
     }
+
+    const playerToDrawCards =
+      await this.playerService.findOneByUsername(
+        gameState.turn_order[playerToDrawIndex].username,
+      );
+
+    playerToDrawCards.hand_cards.push(...drawCards);
+
+    newPlayerDrawCards =
+      await this.playerService.updateByUsername(
+        playerToDrawCards.username,
+        playerToDrawCards,
+      );
+
+    session.players.find(thisPlayer =>
+        thisPlayer.username === newPlayerDrawCards.username,
+    ).handCards = newPlayerDrawCards.hand_cards;
+
+    const newGameState = await this.gameStatesService.update(gameState.id, gameState);
+
+    session.players.forEach(thisPlayer => {
+      if (newGameState && newPlayerDrawCards) {
+        const playableCards = this.gameRoomService.getPlayableCards(
+          thisPlayer.handCards,
+          newGameState.discard_pile[0],
+        );
+        let otherPlayers = session.players.map((otherPlayer) => ({
+          username: otherPlayer.username,
+          cardsCount: otherPlayer.handCards.length,
+        }));
+        otherPlayers = otherPlayers.filter(
+          (player) => player.username !== thisPlayer.username,
+        );
+        let orderedPlayers = this.gameRoomService.getOrderedPlayers(
+          newGameState.turn_order,
+          thisPlayer.username,
+          otherPlayers,
+        );
+
+        let playerSession: any = {
+          played_card: gameState.discard_pile[0],
+          turnOrder: newGameState.turn_order,
+          playable_cards: playableCards,
+          player_cards: orderedPlayers,
+          direction: newGameState.is_forward_direction,
+          hand_cards: thisPlayer.handCards,
+        };
+
+        if (client.id === thisPlayer.id) {
+          client.emit('play-card-response', playerSession);
+        } else {
+          client
+            .to(thisPlayer.id)
+            .emit('play-card-response', playerSession);
+        }
+      }
+    });
   }
 }

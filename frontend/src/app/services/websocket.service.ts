@@ -34,7 +34,7 @@ export class WebsocketService {
   public pause = new BehaviorSubject<boolean>(false);
   public vote = new BehaviorSubject<boolean>(false);
   public voteResult = new BehaviorSubject<{resume: number, wait: number}>({resume: 0, wait: 0});
-  public challenge = new BehaviorSubject<{username: string, card: string}>({username: '', card: ''});
+  public challenge = new BehaviorSubject<{username: string, previousCard: string}>({username: '', previousCard: ''});
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -252,8 +252,12 @@ export class WebsocketService {
     }
   }
 
-  handleAskChallenge(data: {username: string, card: string}) {
+  handleAskChallenge(data: {username: string, previousCard: string}) {
     this.challenge.next(data);
+  }
+  
+  challengePlayer(isChallenging: boolean) {
+    this.socket?.emit('challenge', { isChallenging });
   }
 
   partialResetState() {

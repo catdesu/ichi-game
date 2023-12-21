@@ -61,10 +61,10 @@ export class GameStatesService {
     return await this.gameStateRepository.delete({ id: id });
   }
 
-  switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState): GameState {
+  switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState, askChallenge?: boolean): GameState {
     gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
     gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
-    gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+    gameState.turn_order[nextPlayerIndex].isPlayerTurn = askChallenge ? false : true;
     gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
 
     return gameState;
