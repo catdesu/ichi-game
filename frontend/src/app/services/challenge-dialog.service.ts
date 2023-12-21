@@ -8,12 +8,32 @@ import { ChallengeDialogComponent } from '../components/challenge-dialog/challen
 export class ChallengeDialogService {
   constructor(private dialogService: DialogService) {}
 
+  private numberObject: any = {
+    'zero': 0,
+    'one': 1,
+    'two': 2,
+    'three': 3,
+    'four': 4,
+    'five': 5,
+    'six': 6,
+    'seven': 7,
+    'eight': 8,
+    'nine': 9,
+  }
+  
+  private colorObject: any = {
+    R: 'red',
+    B: 'blue',
+    G: 'green',
+    Y: 'yellow',
+  }
+
   openChalengeDialog(username: string, card: string): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       const ref = this.dialogService.open(ChallengeDialogComponent, {
         width: '400px',
         closable: false,
-        data: { username: username, card: card },
+        data: { username: username, cardNumber: this.getCardRank(card), cardColor: this.getCardColor(card) },
       });
 
       ref.onClose.subscribe((isChallenging: boolean) => {
@@ -23,10 +43,17 @@ export class ChallengeDialogService {
   }
 
   private getCardRank(card: string): string {
-    return card.slice(0, -1);
+    const cardRank: string = card.slice(0, -1);
+
+    if (['changeColor', 'draw4'].includes(cardRank)) {
+      return '';
+    } else {
+      return this.numberObject[cardRank];
+    }
   }
 
   private getCardColor(card: string): string {
-    return card.slice(-1);
+    const cardColorChar = card.slice(-1);
+    return this.colorObject[cardColorChar];
   }
 }

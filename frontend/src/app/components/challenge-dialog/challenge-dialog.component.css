@@ -2,3 +2,19 @@
   display: flex;
   justify-content: space-around;
 }
+
+.red {
+  color: #EA323C;
+}
+
+.blue {
+  color: #0098DC;
+}
+
+.green {
+  color: #33984B;
+}
+
+.yellow {
+  color: #FFC825;  
+}

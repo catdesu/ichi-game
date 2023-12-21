@@ -1,6 +1,6 @@
 <div class="flex flex-column">
     <p class="text-xl text-justify">
-        {{ username }} played a +4. If you think they have {{ card }} card in their hand.
+        <span class="font-bold">{{ username }}</span> played a +4. If you think they have <span class="font-bold {{ cardColor }}">{{ cardNumber }} {{ cardColor }}</span> card in their hand.
         You can challenge them for a chance to make them draw cards instead!
     </p>
     <div class="flex flex-row justify-content-evenly">

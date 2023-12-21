@@ -8,7 +8,8 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 })
 export class ChallengeDialogComponent implements OnInit {
   username?: string;
-  card?: string;
+  cardNumber?: string;
+  cardColor?: string;
 
   constructor(
     public ref: DynamicDialogRef,
@@ -17,7 +18,8 @@ export class ChallengeDialogComponent implements OnInit {
 
   ngOnInit(): void {
       this.username = this.config.data.username;
-      this.card = this.config.data.card;
+      this.cardNumber = this.config.data.cardNumber;
+      this.cardColor = this.config.data.cardColor;
   }
 
   challenge(isChallenging: boolean): void {
