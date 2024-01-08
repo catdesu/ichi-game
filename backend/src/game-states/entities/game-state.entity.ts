@@ -1,4 +1,5 @@
 import { GameRoom } from "src/game-room/entities/game-room.entity";
+import { playerTurnOrderInterface } from "src/game-room/interfaces/player-turn-order.interface";
 import { Player } from "src/players/entities/player.entity";
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -17,7 +18,7 @@ export class GameState {
   discard_pile: string[];
   
   @Column({ type: 'json' })
-  turn_order: { username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[];
+  turn_order: playerTurnOrderInterface[];
   
   @Column()
   is_forward_direction: boolean;

@@ -1,4 +1,5 @@
 import { IsBoolean, IsNumber, IsString } from "class-validator";
+import { playerTurnOrderInterface } from "src/game-room/interfaces/player-turn-order.interface";
 
 export class CreateGameStateDto {
   @IsNumber()
@@ -11,7 +12,7 @@ export class CreateGameStateDto {
   discard_pile: string[];
 
   @IsString()
-  turn_order: { username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[];
+  turn_order: playerTurnOrderInterface[];
   
   @IsBoolean()
   is_forward_direction: boolean;

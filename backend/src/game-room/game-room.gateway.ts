@@ -57,6 +57,8 @@ export class GameRoomGateway {
     let direction: boolean = true;
     let pause: boolean = false;
     let vote: boolean = false;
+    let gameState: GameState;
+    let turnOrderPlayer: playerTurnOrderInterface;
 
     if (player.gameRoom !== null) {
       const isCreator = player.gameRoom.fk_creator_player_id === result.userId;
@@ -90,7 +92,7 @@ export class GameRoomGateway {
 
       session.players.forEach(thisPlayer => {
         let playerHand: string[] = player.gameRoom.players.find(
-          (player) => player.username === thisPlayer.username,
+          player => player.username === thisPlayer.username,
         ).hand_cards;
 
         if (playerHand) {
@@ -104,9 +106,35 @@ export class GameRoomGateway {
       });
 
       if (isInProgress) {
-        const gameState = await this.gameStatesService.findOneByGameRoomId(
+        gameState = await this.gameStatesService.findOneByGameRoomId(
           player.fk_game_room_id,
         );
+
+        turnOrderPlayer = gameState.turn_order.find(turnOrder => turnOrder.openChallengeDialog);
+
+        if (turnOrderPlayer) {
+          const playerOpenDialog = session.players.find(player => player.id === client.id && player.username === turnOrderPlayer.username);
+
+          if (playerOpenDialog) {
+            const currentPlayerIndex = gameState.turn_order.findIndex(
+              player => player.username === turnOrderPlayer.username,
+            );
+            gameState.is_forward_direction = !gameState.is_forward_direction;
+            const nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(
+              currentPlayerIndex,
+              gameState,
+            );
+            const playerToChallenge = session.players.find(thisPlayer => 
+              thisPlayer.username === gameState.turn_order[nextPlayerIndex].username
+            );
+            const previousCard = gameState.discard_pile[0];
+            const challengeSession = {
+              username: playerToChallenge.username,
+              previousCard: previousCard,
+            }
+            client.emit('ask-challenge', challengeSession);
+          }
+        }
 
         discardPile = gameState.discard_pile.shift();
         turnOrder = gameState.turn_order;
@@ -134,7 +162,7 @@ export class GameRoomGateway {
             : otherPlayers;
         }
 
-        const joinResponse = {
+        const joinResponse: any = {
           status: 'success',
           code: player.gameRoom.code,
           players: this.sessions.get(player.gameRoom.code).players.map(thisPlayer => ({ username: thisPlayer.username, isCreator: thisPlayer.isCreator })),
@@ -361,6 +389,7 @@ export class GameRoomGateway {
           username: player.username,
           isPlayerTurn: index === 0,
           hasDrawnThisTurn: false,
+          openChallengeDialog: false,
         }));
 
       session.status = GameRoomStatus.InProgress;
@@ -669,7 +698,7 @@ export class GameRoomGateway {
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
-      const gameState = await this.gameStatesService.findOneByGameRoomId(
+      let gameState = await this.gameStatesService.findOneByGameRoomId(
         player.gameRoom.id,
       );
       let newGameState: GameState;
@@ -718,8 +747,7 @@ export class GameRoomGateway {
                 gameState,
               );
 
-              gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
-              gameState.turn_order[nextPlayerIndex].isPlayerTurn = true;
+              gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
             }
 
             if (gameState.deck.length === 0) {

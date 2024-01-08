@@ -64,8 +64,10 @@ export class GameStatesService {
   switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState, askChallenge?: boolean): GameState {
     gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
     gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
+    gameState.turn_order[currentPlayerIndex].openChallengeDialog = false;
     gameState.turn_order[nextPlayerIndex].isPlayerTurn = askChallenge ? false : true;
     gameState.turn_order[nextPlayerIndex].hasDrawnThisTurn = false;
+    gameState.turn_order[nextPlayerIndex].openChallengeDialog = askChallenge ? true : false;
 
     return gameState;
   }
