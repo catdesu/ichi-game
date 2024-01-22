@@ -190,7 +190,6 @@ export class GameRoomGateway {
   async handleDisconnect(client: Socket): Promise<void> {
     const token = client.handshake.auth.token;
     const result = this.jwtService.decode(token);
-
     const player = await this.playerService.findOneById(result.userId);
 
     if (player.gameRoom !== null) {
@@ -206,7 +205,7 @@ export class GameRoomGateway {
         });
 
         if (session.players.length === 0) {
-          this.sessions.delete(player.gameRoom.code);
+          this.leaveAndDeleteGameRoom(player.gameRoom.code, isInProgress);
         } else {
           if (isInProgress) {
             const playerSession: any = {
@@ -222,8 +221,6 @@ export class GameRoomGateway {
             session.players.forEach(thisPlayer => {
               client.to(thisPlayer.id).emit('pause', playerSession);
             });
-          } else {
-            // await this.gameRoomService.leave(player.id);
           }
 
           session.players.forEach(thisPlayer => {
@@ -325,13 +322,6 @@ export class GameRoomGateway {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave')
   async handleLeave(client: Socket, data: { code: string; playerId: number }) {
-    const updatePlayerDto: UpdatePlayerDto = {
-      fk_game_room_id: null,
-      hand_cards: null,
-    };
-
-    await this.playerService.update(data.playerId, updatePlayerDto);
-
     if (this.sessions.has(data.code)) {
       const session = this.sessions.get(data.code);
       const isInProgress = session.status === GameRoomStatus.InProgress;
@@ -342,23 +332,7 @@ export class GameRoomGateway {
       });
 
       if (session.players.length === 0) {
-        const players = await this.gameRoomService.getPlayers(data.code);
-        
-        players.forEach(async thisPlayer => {
-          await this.playerService.update(thisPlayer.id, updatePlayerDto);
-        });
-
-        const gameRoom = await this.gameRoomService.findOneByCode(data.code);
-
-        if (!gameRoom.players) {
-          if (isInProgress) {
-            const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
-            await this.gameStatesService.delete(gameState.id);
-          }
-
-          this.sessions.delete(data.code);
-          await this.gameRoomService.delete(data.code);
-        }
+        this.leaveAndDeleteGameRoom(data.code, isInProgress);
       } else {
         session.players.forEach(thisPlayer => {
           client.to(thisPlayer.id).emit('leave-response', {
@@ -512,6 +486,12 @@ export class GameRoomGateway {
               playedCard = data.card.slice(0, -1) + 'W';
             }
 
+            const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
+
+            if (cardToRemoveIndex !== -1) {
+              player.hand_cards.splice(cardToRemoveIndex, 1);
+            }
+
             switch (cardEffect) {
               case this.gameRoomService.reverseTurnOrder:
                 gameState.is_forward_direction =
@@ -560,30 +540,26 @@ export class GameRoomGateway {
                 break;
 
               case this.gameRoomService.drawFour:
-                askChallenge = true;
-                const playerAskChallenge = session.players.find(thisPlayer => 
-                  thisPlayer.username === gameState.turn_order[nextPlayerIndex].username
-                );
-                const playerToChallenge = session.players.find(thisPlayer => 
-                  thisPlayer.username === gameState.turn_order[currentPlayerIndex].username
-                );
-                const previousCard = gameState.discard_pile[0];
-                const challengeSession = {
-                  username: playerToChallenge.username,
-                  previousCard: previousCard,
+                if (player.hand_cards.length !== 0) {
+                  askChallenge = true;
+                  const playerAskChallenge = session.players.find(thisPlayer => 
+                    thisPlayer.username === gameState.turn_order[nextPlayerIndex].username
+                  );
+                  const playerToChallenge = session.players.find(thisPlayer => 
+                    thisPlayer.username === gameState.turn_order[currentPlayerIndex].username
+                  );
+                  const previousCard = gameState.discard_pile[0];
+                  const challengeSession = {
+                    username: playerToChallenge.username,
+                    previousCard: previousCard,
+                  }
+                  client.to(playerAskChallenge.id).emit('ask-challenge', challengeSession);
                 }
-                client.to(playerAskChallenge.id).emit('ask-challenge', challengeSession);
                 break;
             }
 
             gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState, askChallenge);
             gameState.discard_pile.unshift(data.card);
-
-            const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
-
-            if (cardToRemoveIndex !== -1) {
-              player.hand_cards.splice(cardToRemoveIndex, 1);
-            }
 
             const updateGameStateDto: UpdateGameStateDto = {
               discard_pile: gameState.discard_pile,
@@ -1051,5 +1027,30 @@ export class GameRoomGateway {
         }
       }
     });
+  }
+
+  private async leaveAndDeleteGameRoom(code: string, isInProgress: boolean) {
+    const updatePlayerDto: UpdatePlayerDto = {
+      fk_game_room_id: null,
+      hand_cards: null,
+    };
+    
+    const players = await this.gameRoomService.getPlayers(code);
+        
+    players.forEach(async thisPlayer => {
+      await this.playerService.update(thisPlayer.id, updatePlayerDto);
+    });
+
+    const gameRoom = await this.gameRoomService.findOneByCode(code);
+
+    if (!gameRoom.players) {
+      if (isInProgress) {
+        const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
+        await this.gameStatesService.delete(gameState.id);
+      }
+
+      this.sessions.delete(code);
+      await this.gameRoomService.delete(code);
+    }
   }
 }
