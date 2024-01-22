@@ -41,12 +41,16 @@ export class GameRoomGateway {
     private readonly jwtService: JwtService,
   ) {}
 
+  /**
+   * Handles the connection event when a client socket connects to the server.
+   * 
+   * @param {Socket} client - The connected client socket.
+   * @returns {Promise<void>} A Promise that resolves when the connection handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   async handleConnection(client: Socket): Promise<void> {
-    const token = client.handshake.auth.token;
-    const result = this.jwtService.decode(token);
+    const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
-    const player = await this.playerService.findOneById(result.userId);
     const playerCards: playerCardsCountInterface[] = [];
     let handCards: string[] = [];
     let discardPile: string = '';
@@ -61,7 +65,7 @@ export class GameRoomGateway {
     let turnOrderPlayer: playerTurnOrderInterface;
 
     if (player.gameRoom !== null) {
-      const isCreator = player.gameRoom.fk_creator_player_id === result.userId;
+      const isCreator = player.gameRoom.fk_creator_player_id === player.id;
       const isInProgress = player.gameRoom.status === GameRoomStatus.InProgress;
 
       if (!this.sessions.has(player.gameRoom.code)) {
@@ -187,10 +191,14 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the disconnect event when a client socket disconnects from the server.
+   * 
+   * @param {Socket} client - The disconnected client socket.
+   * @returns {Promise<void>} A Promise that resolves when the disconnect handling is complete.
+   */
   async handleDisconnect(client: Socket): Promise<void> {
-    const token = client.handshake.auth.token;
-    const result = this.jwtService.decode(token);
-    const player = await this.playerService.findOneById(result.userId);
+    const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
     if (player.gameRoom !== null) {
       if (this.sessions.has(player.gameRoom.code)) {
@@ -233,6 +241,14 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'create' event, allowing a player to create a new game room.
+   * 
+   * @param {Socket} client - The client socket initiating the create action.
+   * @param {object} data - The data object containing information about the player.
+   * @param {number} data.playerId - The unique identifier of the creating player.
+   * @returns {Promise<void>} A Promise that resolves when the create handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('create')
   async handleCreateGameRoom(
@@ -262,6 +278,15 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'join' event, allowing a player to join an open game room.
+   * 
+   * @param {Socket} client - The client socket initiating the join action.
+   * @param {object} data - The data object containing information about the game room and player.
+   * @param {string} data.code - The unique code identifying the game room.
+   * @param {number} data.playerId - The unique identifier of the joining player.
+   * @returns {Promise<void>} A Promise that resolves when the join handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('join')
   async handleJoinGameRoom(
@@ -319,6 +344,15 @@ export class GameRoomGateway {
     client.emit('join-response', joinResponse);
   }
 
+  /**
+   * Handles the 'leave' event, allowing a player to leave the game room.
+   * 
+   * @param {Socket} client - The client socket initiating the leave action.
+   * @param {object} data - The data object containing information about the game room and player.
+   * @param {string} data.code - The unique code identifying the game room.
+   * @param {number} data.playerId - The unique identifier of the leaving player.
+   * @returns {Promise<void>} A Promise that resolves when the leave handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('leave')
   async handleLeave(client: Socket, data: { code: string; playerId: number }) {
@@ -345,6 +379,14 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'start' event, initiating the game and dealing initial cards to players.
+   * 
+   * @param {Socket} client - The client socket initiating the start action.
+   * @param {object} data - The data object containing information about the game room.
+   * @param {string} data.code - The unique code identifying the game room.
+   * @returns {Promise<void>} A Promise that resolves when the start handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('start')
   async handleGameStart(client: Socket, data: { code: string }) {
@@ -448,12 +490,18 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'play-card' event, allowing a player to play a card in the game.
+   * 
+   * @param {Socket} client - The client socket initiating the play-card action.
+   * @param {object} data - The data object containing information about the played card.
+   * @param {string} data.card - The card played by the player.
+   * @returns {Promise<void>} A Promise that resolves when the play-card handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('play-card')
   async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
-    const token = client.handshake.auth.token;
-    const result = this.jwtService.decode(token);
-    const player = await this.playerService.findOneById(result.userId);
+    const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
@@ -665,12 +713,16 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'draw-card' event, allowing a player to draw a card in the game.
+   * 
+   * @param {Socket} client - The client socket initiating the draw-card action.
+   * @returns {Promise<void>} A Promise that resolves when the draw-card handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('draw-card')
   async handleDrawCard(client: Socket): Promise<void> {
-    const token = client.handshake.auth.token;
-    const result = this.jwtService.decode(token);
-    const player = await this.playerService.findOneById(result.userId);
+    const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
     if (player.gameRoom !== null) {
       const session = this.sessions.get(player.gameRoom.code);
@@ -783,6 +835,15 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'vote' event, where players vote to either resume or wait in the game.
+   * 
+   * @param {Socket} client - The client socket initiating the vote.
+   * @param {object} data - The data object containing information about the vote.
+   * @param {string} data.code - The unique code identifying the game room.
+   * @param {string} data.vote - The vote choice, either 'resume' or 'wait'.
+   * @returns {Promise<void>} A Promise that resolves when the vote handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('vote')
   async handleVote(client: Socket, data: { code: string, vote: string }): Promise<void> {
@@ -917,13 +978,19 @@ export class GameRoomGateway {
     }
   }
 
+  /**
+   * Handles the 'challenge' event, where a player challenges the previous player's move in the game.
+   * 
+   * @param {Socket} client - The client socket initiating the challenge.
+   * @param {object} data - The data object containing information about the challenge.
+   * @param {boolean} data.isChallenging - Indicates whether the challenge is initiated by the player.
+   * @returns {Promise<void>} A Promise that resolves when the challenge handling is complete.
+   */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('challenge')
   async handleChallenge(client: Socket, data: { isChallenging: boolean }): Promise<void> {
-    const token = client.handshake.auth.token;
-    const result = this.jwtService.decode(token);
+    const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
-    const player = await this.playerService.findOneById(result.userId);
     const session = this.sessions.get(player.gameRoom.code);
     let gameState = await this.gameStatesService.findOneByGameRoomId(player.fk_game_room_id);
     const previousTopCard = gameState.discard_pile[1];
@@ -1029,12 +1096,30 @@ export class GameRoomGateway {
     });
   }
 
-  private async leaveAndDeleteGameRoom(code: string, isInProgress: boolean) {
+  /**
+   * Retrieves a player using the provided JWT token.
+   * 
+   * @param {string} token - The JWT token containing user information.
+   * @returns {Promise<Player>} A Promise that resolves to the player associated with the provided token.
+   */
+  private async getPlayerWithJWTToken(token: string): Promise<Player> {
+    const result = this.jwtService.decode(token);
+    return await this.playerService.findOneById(result.userId);
+  }
+
+  /**
+   * Handles the process of a player leaving a game room and deletes the room if it's empty.
+   * 
+   * @param {string} code - The unique code identifying the game room.
+   * @param {boolean} isInProgress - Indicates whether the game in the room is in progress.
+   * @returns {Promise<void>} A Promise that resolves when the operation is complete.
+   */
+  private async leaveAndDeleteGameRoom(code: string, isInProgress: boolean): Promise<void> {
     const updatePlayerDto: UpdatePlayerDto = {
       fk_game_room_id: null,
       hand_cards: null,
     };
-    
+
     const players = await this.gameRoomService.getPlayers(code);
         
     players.forEach(async thisPlayer => {
