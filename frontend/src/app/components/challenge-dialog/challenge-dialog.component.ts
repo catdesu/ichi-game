@@ -10,6 +10,7 @@ export class ChallengeDialogComponent implements OnInit {
   username?: string;
   cardNumber?: string;
   cardColor?: string;
+  cardText?: string;
 
   constructor(
     public ref: DynamicDialogRef,
@@ -17,9 +18,27 @@ export class ChallengeDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-      this.username = this.config.data.username;
-      this.cardNumber = this.config.data.cardNumber;
-      this.cardColor = this.config.data.cardColor;
+    this.username = this.config.data.username;
+    this.cardNumber = this.config.data.cardNumber;
+    this.cardColor = this.config.data.cardColor;
+
+    if (this.cardNumber) {
+      if (this.cardNumber == '8') {
+        this.cardNumber = `an ${this.cardNumber}`;
+      } else {
+        this.cardNumber = `a ${this.cardNumber}`;
+      }
+    }
+
+    if (this.cardColor) {
+      this.cardColor = `a ${this.cardColor}`;
+    }
+
+    if (this.cardNumber && this.cardColor) {
+      this.cardText = `${this.cardNumber} or ${this.cardColor}`;
+    } else {
+      this.cardText = this.cardColor;
+    }
   }
 
   challenge(isChallenging: boolean): void {
