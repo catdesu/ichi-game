@@ -18,6 +18,13 @@ export class PlayersService {
     private readonly playerRepository: Repository<Player>,
   ) {}
 
+  /**
+   * Finds a player by their ID.
+   * 
+   * @param {number} id - The ID of the player to search for.
+   * @returns {Promise<Player>} A promise resolving to the player with the specified ID.
+   * @throws If no player is found with the given ID.
+   */
   findOneById(id: number) {
     const player = this.playerRepository.findOne({ where: { id: id }, relations: ['gameRoom', 'gameRoom.players'] });
 
@@ -27,6 +34,13 @@ export class PlayersService {
     return player;
   }
 
+  /**
+   * Finds a player by their username.
+   * 
+   * @param {string} username - The username to search for.
+   * @returns {Promise<Player>} A promise resolving to the player with the specified username.
+   * @throws If no player is found with the given username.
+   */
   findOneByUsername(username: string) {
     const player = this.playerRepository.findOne({
       where: { username: username },
@@ -38,6 +52,13 @@ export class PlayersService {
     return player;
   }
 
+  /**
+   * Creates a new player based on the provided data.
+   * 
+   * @param {CreatePlayerDto} createPlayerDto - The data for creating the new player.
+   * @returns {Promise<Player>} A promise resolving to the newly created player.
+   * @throws If the username is already taken or registration fails.
+   */
   async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
     const playerExists = await this.playerRepository.findOne({
       where: { username: createPlayerDto.username }
@@ -59,6 +80,14 @@ export class PlayersService {
     }
   }
 
+  /**
+   * Updates a player's information by their ID.
+   * 
+   * @param {number} id - The ID of the player to be updated.
+   * @param {UpdatePlayerDto} updatePlayerDto - The data to be updated for the player.
+   * @returns {Promise<void>} A promise representing the completion of the update.
+   * @throws If the player with the given ID is not found.
+   */
   async update(id: number, updatePlayerDto: UpdatePlayerDto) {
     const player = await this.playerRepository.findOne({
       where: { id: id },
@@ -72,6 +101,14 @@ export class PlayersService {
     return await this.playerRepository.save(player);
   }
   
+  /**
+   * Updates a player's information by their username.
+   * 
+   * @param {string} username - The username of the player to be updated.
+   * @param {UpdatePlayerDto} updatePlayerDto - The data to be updated for the player.
+   * @returns {Promise<void>} A promise representing the completion of the update.
+   * @throws If the player with the given username is not found.
+   */
   async updateByUsername(username: string, updatePlayerDto: UpdatePlayerDto) {
     const player = await this.playerRepository.findOne({
       where: { username: username },
@@ -84,10 +121,24 @@ export class PlayersService {
     return await this.playerRepository.save(player);
   }
 
+  /**
+   * Hashes the provided password using Argon2 hashing.
+   * 
+   * @param {string} password - The password to be hashed.
+   * @returns {Promise<string>} A promise that resolves to the hashed password.
+   */
   private async hashPassword(password: string): Promise<string> {
     return await argon2.hash(password);
   }
 
+  /**
+   * Compares the stored password hash with the entered password using Argon2 hashing.
+   * 
+   * @param {string} storedPasswordHash - The stored password hash to compare.
+   * @param {string} enteredPassword - The entered password for comparison.
+   * @returns {Promise<boolean>} A promise that resolves to true if the passwords match, otherwise false.
+   * @throws Throws an exception if the comparison fails, indicating invalid credentials.
+   */
   async comparePassword(
     storedPasswordHash: string,
     enteredPassword: string,

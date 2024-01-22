@@ -11,6 +11,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  /**
+   * Validates a user's credentials by checking the provided username and password.
+   * 
+   * @param {string} username - The username of the player.
+   * @param {string} password - The password entered by the user.
+   * @returns {Promise<Player | null>} The player object if validation is successful, otherwise returns null.
+   */
   async validateUser(username: string, password: string): Promise<any> {
     const player = await this.playersService.findOneByUsername(username);
 
@@ -25,6 +32,12 @@ export class AuthService {
     return null;
   }
 
+  /**
+   * Logs in a player and generates an access token for authentication.
+   * 
+   * @param {Player} player - The player object to generate the access token for.
+   * @returns {Object} An object containing the generated access token.
+   */
   @UseGuards(LocalAuthGuard)
   async login(player: Player) {
     const payload = { username: player.username, userId: player.id };

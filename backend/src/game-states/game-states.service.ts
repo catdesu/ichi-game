@@ -12,6 +12,13 @@ export class GameStatesService {
     private readonly gameStateRepository: Repository<GameState>,
   ) {}
 
+  /**
+   * Finds a game state based on the provided game room ID.
+   * 
+   * @param {number} gameRoomId - The ID of the game room.
+   * @returns {Promise<GameState>} A promise that resolves to the found game state.
+   * @throws Throws an exception if the game state is not found.
+   */
   async findOneByGameRoomId(gameRoomId: number): Promise<GameState> {
     const gameState = await this.gameStateRepository.findOne({
       where: { fk_game_room_id: gameRoomId }
@@ -22,6 +29,13 @@ export class GameStatesService {
     return gameState;
   }
 
+  /**
+   * Creates a new game state with the provided data.
+   * 
+   * @param {CreateGameStateDto} createGameStateDto - The data to create the game state.
+   * @returns {Promise<GameState>} A promise that resolves to the created game state.
+   * @throws Throws an exception if the creation fails.
+   */
   async create(createGameStateDto: CreateGameStateDto): Promise<GameState> {
     const gameState = new GameState();
 
@@ -38,6 +52,14 @@ export class GameStatesService {
     }
   }
 
+  /**
+   * Updates a game state with the provided ID and data.
+   * 
+   * @param {number} id - The ID of the game state to be updated.
+   * @param {UpdateGameStateDto} updateGameStateDto - The data to update the game state.
+   * @returns {Promise<GameState>} A promise that resolves to the updated game state.
+   * @throws Throws an exception if the update fails.
+   */
   async update(id: number, updateGameStateDto: UpdateGameStateDto): Promise<GameState> {
     const gameState = await this.gameStateRepository.findOne({
       where: { id: id }
@@ -57,10 +79,25 @@ export class GameStatesService {
     }
   }
 
-  async delete(id: number) {
+  /**
+   * Deletes a game state by its ID.
+   * 
+   * @param {number} id - The ID of the game state to be deleted.
+   * @returns {Promise<any>} A promise indicating the result of the deletion operation.
+   */
+  async delete(id: number): Promise<any> {
     return await this.gameStateRepository.delete({ id: id });
   }
 
+  /**
+   * Switches the player turn in the game state.
+   * 
+   * @param {number} currentPlayerIndex - The index of the current player in the turn order.
+   * @param {number} nextPlayerIndex - The index of the next player in the turn order.
+   * @param {GameState} gameState - The current game state.
+   * @param {boolean} [askChallenge] - Optional flag indicating whether an open challenge dialog is initiated.
+   * @returns {GameState} The updated game state after switching the player turn.
+   */
   switchPlayerTurn(currentPlayerIndex: number, nextPlayerIndex: number, gameState: GameState, askChallenge?: boolean): GameState {
     gameState.turn_order[currentPlayerIndex].isPlayerTurn = false;
     gameState.turn_order[currentPlayerIndex].hasDrawnThisTurn = false;
@@ -72,6 +109,13 @@ export class GameStatesService {
     return gameState;
   }
 
+  /**
+   * Remakes the deck from the discard pile, ensuring the new deck contains the specified top card.
+   * 
+   * @param {GameState} gameState - The current game state.
+   * @param {string} topCard - The top card to be included in the new deck.
+   * @returns {Promise<GameState>} A promise that resolves with the updated game state.
+   */
   async remakeDeckFromDiscardPile(gameState: GameState, topCard: string): Promise<GameState> {
     const newDeck = [...gameState.discard_pile];
     const newDiscardPile = [topCard];
