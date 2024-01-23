@@ -275,6 +275,7 @@ export class WebsocketService {
     this.pause.next(false);
     this.vote.next(false);
     this.voteResult.next({resume: 0, wait: 0});
+    this.challenge.next({username: '', previousCard: ''});
   }
 
   resetState() {
@@ -294,5 +295,6 @@ export class WebsocketService {
     this.pause.next(false);
     this.vote.next(false);
     this.voteResult.next({resume: 0, wait: 0});
+    this.challenge.next({username: '', previousCard: ''});
   }
 }
