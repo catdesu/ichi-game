@@ -59,13 +59,14 @@ export class GameStatesService {
    * @param {UpdateGameStateDto} updateGameStateDto - The data to update the game state.
    * @returns {Promise<GameState>} A promise that resolves to the updated game state.
    * @throws Throws an exception if the update fails.
+   * @throws Throws an exception if the game state is not found.
    */
   async update(id: number, updateGameStateDto: UpdateGameStateDto): Promise<GameState> {
     const gameState = await this.gameStateRepository.findOne({
       where: { id: id }
     });
 
-    if (!gameState) {}
+    if (!gameState) throw new NotFoundException('Game state not found.');
 
     gameState.deck = updateGameStateDto.deck;
     gameState.discard_pile = updateGameStateDto.discard_pile;
@@ -84,8 +85,15 @@ export class GameStatesService {
    * 
    * @param {number} id - The ID of the game state to be deleted.
    * @returns {Promise<any>} A promise indicating the result of the deletion operation.
+   * @throws Throws an exception if the game state is not found.
    */
   async delete(id: number): Promise<any> {
+    const gameState = await this.gameStateRepository.findOne({
+      where: { id: id }
+    });
+
+    if (!gameState) throw new NotFoundException('Game state not found.');
+
     return await this.gameStateRepository.delete({ id: id });
   }
 

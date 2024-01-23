@@ -25,11 +25,10 @@ export class PlayersService {
    * @returns {Promise<Player>} A promise resolving to the player with the specified ID.
    * @throws If no player is found with the given ID.
    */
-  findOneById(id: number) {
+  findOneById(id: number): Promise<Player> {
     const player = this.playerRepository.findOne({ where: { id: id }, relations: ['gameRoom', 'gameRoom.players'] });
 
-    if (!player)
-      throw new NotFoundException(`Player with ID ${id} not found`);
+    if (!player) throw new NotFoundException(`Player not found`);
 
     return player;
   }
@@ -41,13 +40,12 @@ export class PlayersService {
    * @returns {Promise<Player>} A promise resolving to the player with the specified username.
    * @throws If no player is found with the given username.
    */
-  findOneByUsername(username: string) {
+  findOneByUsername(username: string): Promise<Player> {
     const player = this.playerRepository.findOne({
       where: { username: username },
     });
 
-    if (!player) 
-      throw new NotFoundException(`Player with username ${username} not found`);
+    if (!player) throw new NotFoundException(`Player not found`);
 
     return player;
   }
@@ -85,10 +83,10 @@ export class PlayersService {
    * 
    * @param {number} id - The ID of the player to be updated.
    * @param {UpdatePlayerDto} updatePlayerDto - The data to be updated for the player.
-   * @returns {Promise<void>} A promise representing the completion of the update.
+   * @returns {Promise<Player>} A promise representing the completion of the update.
    * @throws If the player with the given ID is not found.
    */
-  async update(id: number, updatePlayerDto: UpdatePlayerDto) {
+  async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
     const player = await this.playerRepository.findOne({
       where: { id: id },
     });
@@ -106,10 +104,10 @@ export class PlayersService {
    * 
    * @param {string} username - The username of the player to be updated.
    * @param {UpdatePlayerDto} updatePlayerDto - The data to be updated for the player.
-   * @returns {Promise<void>} A promise representing the completion of the update.
+   * @returns {Promise<Player>} A promise representing the completion of the update.
    * @throws If the player with the given username is not found.
    */
-  async updateByUsername(username: string, updatePlayerDto: UpdatePlayerDto) {
+  async updateByUsername(username: string, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
     const player = await this.playerRepository.findOne({
       where: { username: username },
     });

@@ -133,6 +133,7 @@ export class GameRoomService {
    * 
    * @param {string} code - The code of the game room.
    * @returns {Promise<Player[]>} A promise that resolves to an array of players in the game room.
+   * @throws Throws an exception if the game room with the specified ID is not found.
    */
   async getPlayers(code: string): Promise<Player[]> {
     const gameRoom: GameRoom = await this.gameRoomRepository.findOne({
@@ -143,13 +144,18 @@ export class GameRoomService {
     return gameRoom.players;
   }
 
+  /**
+   * Update a game room status to in-progress
+   * 
+   * @param {string} code - The code of the game room.
+   * @throws Throws an exception if the game room with the specified ID is not found.
+   */
   async start(code: string): Promise<void> {
     const gameRoom = await this.gameRoomRepository.findOne({
       where: { code: code },
     });
 
-    if (!gameRoom) {
-    }
+    if (!gameRoom) throw new NotFoundException('Game room not found.');
 
     gameRoom.status = GameRoomStatus.InProgress;
 
@@ -161,8 +167,15 @@ export class GameRoomService {
    * 
    * @param {string} code - The code of the game room to be deleted.
    * @returns {Promise<any>} A promise that resolves when the deletion is complete.
+   * @throws Throws an exception if the game room with the specified ID is not found.
    */
   async delete(code: string): Promise<any> {
+    const gameRoom = await this.gameRoomRepository.findOne({
+      where: { code: code },
+    });
+
+    if (!gameRoom) throw new NotFoundException('Game room not found.');
+
     return await this.gameRoomRepository.delete({ code: code });
   }
 
