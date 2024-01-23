@@ -37,7 +37,8 @@ export class GameRoomService {
    */
   async findOneByCode(code: string): Promise<GameRoom> {
     const gameRoom = await this.gameRoomRepository.findOne({
-      where: { code: code }
+      where: { code: code },
+      relations: ['players'],
     });
 
     if (!gameRoom) throw new NotFoundException('Game room not found.');

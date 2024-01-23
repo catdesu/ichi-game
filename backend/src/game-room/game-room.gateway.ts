@@ -1128,7 +1128,7 @@ export class GameRoomGateway {
 
     const gameRoom = await this.gameRoomService.findOneByCode(code);
 
-    if (!gameRoom.players) {
+    if (gameRoom.players.length === 0) {
       if (isInProgress) {
         const gameState = await this.gameStatesService.findOneByGameRoomId(gameRoom.id);
         await this.gameStatesService.delete(gameState.id);
