@@ -500,7 +500,7 @@ export class GameRoomGateway {
    */
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('play-card')
-  async handlePlayCard(client: Socket, data: { card: string }): Promise<void> {
+  async handlePlayCard(client: Socket, data: { card: string, cardIndex: number }): Promise<void> {
     const player = await this.getPlayerWithJWTToken(client.handshake.auth.token);
 
     if (player.gameRoom !== null) {
@@ -534,7 +534,7 @@ export class GameRoomGateway {
               playedCard = data.card.slice(0, -1) + 'W';
             }
 
-            const cardToRemoveIndex = player.hand_cards.indexOf(playedCard);
+            const cardToRemoveIndex = data.cardIndex ? data.cardIndex : player.hand_cards.indexOf(playedCard);
 
             if (cardToRemoveIndex !== -1) {
               player.hand_cards.splice(cardToRemoveIndex, 1);

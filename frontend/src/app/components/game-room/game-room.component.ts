@@ -191,15 +191,15 @@ export class GameRoomComponent implements OnInit {
     }, 2000);
   }
 
-  async playCard(cardName: string) {
+  async playCard(cardName: string, cardToRemoveIndex: number) {
     if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn && !this.pause) {
       if (this.playableCards.includes(cardName)) {
         if (['changeColorW', 'draw4W'].includes(cardName)) {
           const chosenColor = await this.colorDialogService.openColorDialog();
           const newCardName = cardName.replace(/W$/, chosenColor);
-          this.websocketService.playCard(newCardName);
+          this.websocketService.playCard(newCardName, cardToRemoveIndex);
         } else {
-          this.websocketService.playCard(cardName);
+          this.websocketService.playCard(cardName, cardToRemoveIndex);
         }
       }
     }

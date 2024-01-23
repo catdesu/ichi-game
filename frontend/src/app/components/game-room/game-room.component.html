@@ -77,7 +77,7 @@
             <div class="player_hand">
                 <div *ngFor="let card of playerHand; let i = index" ngClass="card {{ card }}"
                     [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing"
-                    (click)="playCard(card)">
+                    (click)="playCard(card, i)">
                     <div class="bckg"></div>
                 </div>
             </div>

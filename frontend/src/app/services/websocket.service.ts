@@ -162,9 +162,10 @@ export class WebsocketService {
     this.direction.next(data.direction);
   }
 
-  playCard(cardName: string, chosenColor?: string) {
+  playCard(cardName: string, cardToRemoveIndex: number, chosenColor?: string) {
     const playCard: any = {
       card: cardName,
+      cardIndex: cardToRemoveIndex,
     }
 
     if (chosenColor) {
