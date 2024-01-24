@@ -1121,10 +1121,10 @@ export class GameRoomGateway {
     };
 
     const players = await this.gameRoomService.getPlayers(code);
-        
-    players.forEach(async thisPlayer => {
-      await this.playerService.update(thisPlayer.id, updatePlayerDto);
-    });
+    
+    for (const player of players) {
+      await this.playerService.update(player.id, updatePlayerDto);
+    }
 
     const gameRoom = await this.gameRoomService.findOneByCode(code);
 
