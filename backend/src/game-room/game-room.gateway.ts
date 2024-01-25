@@ -232,7 +232,7 @@ export class GameRoomGateway {
           vote: session.players.length !== 1,
         });
       });
-
+    } else {
       session.players.forEach(thisPlayer => {
         client.to(thisPlayer.id).emit('leave-response', {
           players: session.players,
@@ -369,8 +369,6 @@ export class GameRoomGateway {
 
     if (session.players.length === 0) {
       this.leaveAndDeleteGameRoom(data.code, isInProgress);
-      client.emit('leave-response');
-      return;
     }
 
     session.players.forEach(thisPlayer => {
@@ -378,6 +376,8 @@ export class GameRoomGateway {
         players: session.players,
       });
     });
+
+    client.emit('leave-response');
   }
 
   /**
