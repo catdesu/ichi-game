@@ -903,86 +903,88 @@ export class GameRoomGateway {
       }
     });
 
-    if (numberOfVotes === session.players.length && session.voteResult.resume > session.voteResult.wait) {
-      const players = await this.gameRoomService.getPlayers(code);
-      let gameState = await this.gameStatesService.findOneByGameRoomId(players[0].fk_game_room_id);
-      const missingPlayersCards = [];
-      let otherPlayers: playerCardsCountInterface[] = [];
-      let orderedPlayers: playerCardsCountInterface[] = [];
-      
-      const missingPlayers: Player[] = players.filter(thisPlayer => !session.players.some(remainingPlayer => remainingPlayer.username === thisPlayer.username));
-      const missingPlayersTurn = missingPlayers.filter(thisPlayer => gameState.turn_order.some(remainingPlayer => remainingPlayer.username === thisPlayer.username && remainingPlayer.isPlayerTurn));
-      const updatePlayerDto: UpdatePlayerDto = {
-        fk_game_room_id: null,
-        hand_cards: null,
-      };
-
-      session.voteResult = { resume: 0, wait: 0 };
-
-      if (missingPlayersTurn.length > 0) {
-        const currentPlayerIndex = gameState.turn_order.findIndex(
-          thisPlayer => thisPlayer.username === missingPlayersTurn[0].username,
-        );
-        let nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(
-          currentPlayerIndex,
-          gameState,
-        );
-
-        gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
-      }
-
-      missingPlayers.forEach(async missingPlayer => {
-        const missingPlayerIndex = gameState.turn_order.findIndex(thisPlayer => thisPlayer.username === missingPlayer.username);
-        gameState.turn_order.splice(missingPlayerIndex, 1);
-        missingPlayersCards.push(...missingPlayer.hand_cards);
-        await this.playerService.update(missingPlayer.id, updatePlayerDto);
-      });
-
-      gameState.deck.push(...missingPlayersCards);
-
-      const updateGameStateDto: UpdateGameStateDto = {
-        deck: gameState.deck,
-        turn_order: gameState.turn_order,
-      };
-
-      const newGameState = await this.gameStatesService.update(gameState.id, updateGameStateDto);
-      const playerCards: playerCardsCountInterface[] = [];
-
-      session.players.forEach(thisPlayer => {
-        playerCards.push({
-          username: thisPlayer.username,
-          cardsCount: thisPlayer.handCards.length,
-        });
-      });
-
-      voteResponse.turnOrder = newGameState.turn_order;
-      voteResponse.players = session.players.map(thisPlayer => ({ username: thisPlayer.username, isCreator: thisPlayer.isCreator }));
-      voteResponse.pause = false;
-      voteResponse.vote = false;
-      voteResponse.voteResult = { resume: 0, wait: 0 };
-
-      session.players.forEach(thisPlayer => {
-        thisPlayer.hasVotedFor = undefined;
-        otherPlayers = playerCards.filter(
-          (player) => player.username !== thisPlayer.username,
-        );
-        orderedPlayers = session.players.length > 2
-          ? this.gameRoomService.getOrderedPlayers(
-              newGameState.turn_order,
-              thisPlayer.username,
-              otherPlayers,
-            )
-          : otherPlayers;
-        
-        voteResponse.playerCards = orderedPlayers;
-
-        if (client.id === thisPlayer.id) {
-          client.emit('vote-response', voteResponse);
-        } else {
-          client.to(thisPlayer.id).emit('vote-response', voteResponse);
-        }
-      });
+    if (numberOfVotes !== session.players.length || session.voteResult.resume <= session.voteResult.wait) {
+      return;
     }
+    
+    const players = await this.gameRoomService.getPlayers(code);
+    let gameState = await this.gameStatesService.findOneByGameRoomId(players[0].fk_game_room_id);
+    const missingPlayersCards = [];
+    let otherPlayers: playerCardsCountInterface[] = [];
+    let orderedPlayers: playerCardsCountInterface[] = [];
+    
+    const missingPlayers: Player[] = players.filter(thisPlayer => !session.players.some(remainingPlayer => remainingPlayer.username === thisPlayer.username));
+    const missingPlayersTurn = missingPlayers.filter(thisPlayer => gameState.turn_order.some(remainingPlayer => remainingPlayer.username === thisPlayer.username && remainingPlayer.isPlayerTurn));
+    const updatePlayerDto: UpdatePlayerDto = {
+      fk_game_room_id: null,
+      hand_cards: null,
+    };
+
+    session.voteResult = { resume: 0, wait: 0 };
+
+    if (missingPlayersTurn.length > 0) {
+      const currentPlayerIndex = gameState.turn_order.findIndex(
+        thisPlayer => thisPlayer.username === missingPlayersTurn[0].username,
+      );
+      let nextPlayerIndex = this.gameRoomService.getNextPlayerIndex(
+        currentPlayerIndex,
+        gameState,
+      );
+
+      gameState = this.gameStatesService.switchPlayerTurn(currentPlayerIndex, nextPlayerIndex, gameState);
+    }
+
+    missingPlayers.forEach(async missingPlayer => {
+      const missingPlayerIndex = gameState.turn_order.findIndex(thisPlayer => thisPlayer.username === missingPlayer.username);
+      gameState.turn_order.splice(missingPlayerIndex, 1);
+      missingPlayersCards.push(...missingPlayer.hand_cards);
+      await this.playerService.update(missingPlayer.id, updatePlayerDto);
+    });
+
+    gameState.deck.push(...missingPlayersCards);
+
+    const updateGameStateDto: UpdateGameStateDto = {
+      deck: gameState.deck,
+      turn_order: gameState.turn_order,
+    };
+
+    const newGameState = await this.gameStatesService.update(gameState.id, updateGameStateDto);
+    const playerCards: playerCardsCountInterface[] = [];
+
+    session.players.forEach(thisPlayer => {
+      playerCards.push({
+        username: thisPlayer.username,
+        cardsCount: thisPlayer.handCards.length,
+      });
+    });
+
+    voteResponse.turnOrder = newGameState.turn_order;
+    voteResponse.players = session.players.map(thisPlayer => ({ username: thisPlayer.username, isCreator: thisPlayer.isCreator }));
+    voteResponse.pause = false;
+    voteResponse.vote = false;
+    voteResponse.voteResult = { resume: 0, wait: 0 };
+
+    session.players.forEach(thisPlayer => {
+      thisPlayer.hasVotedFor = undefined;
+      otherPlayers = playerCards.filter(
+        (player) => player.username !== thisPlayer.username,
+      );
+      orderedPlayers = session.players.length > 2
+        ? this.gameRoomService.getOrderedPlayers(
+            newGameState.turn_order,
+            thisPlayer.username,
+            otherPlayers,
+          )
+        : otherPlayers;
+      
+      voteResponse.playerCards = orderedPlayers;
+
+      if (client.id === thisPlayer.id) {
+        client.emit('vote-response', voteResponse);
+      } else {
+        client.to(thisPlayer.id).emit('vote-response', voteResponse);
+      }
+    });
   }
 
   /**

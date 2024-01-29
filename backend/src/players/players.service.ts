@@ -40,8 +40,8 @@ export class PlayersService {
    * @returns {Promise<Player>} A promise resolving to the player with the specified username.
    * @throws If no player is found with the given username.
    */
-  findOneByUsername(username: string): Promise<Player> {
-    const player = this.playerRepository.findOne({
+  async findOneByUsername(username: string): Promise<Player> {
+    const player = await this.playerRepository.findOne({
       where: { username: username },
     });
 
