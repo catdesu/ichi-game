@@ -5,10 +5,10 @@ import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class GameState {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column()
+  @Column({ unsigned: true })
   fk_game_room_id: number;
 
   @Column({ type: 'json' })

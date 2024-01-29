@@ -5,24 +5,24 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn
 
 @Entity()
 export class Player {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: null, unsigned: true })
   fk_game_room_id: number;
 
   @ManyToOne(() => GameRoom, (gameRoom) => gameRoom.players)
   @JoinColumn({ name: 'fk_game_room_id' })
   gameRoom: GameRoom;
 
-  @Column({ length: 30 })
+  @Column({ length: 30, collation: 'utf8mb4_bin' })
   username: string;
 
   @Column({ length: 255 })
   @Exclude()
   password: string;
 
-  @Column({ nullable: true, type: 'json' })
+  @Column({ nullable: true, default: null, type: 'json' })
   hand_cards: string[];
 
   @OneToOne(() => GameState)

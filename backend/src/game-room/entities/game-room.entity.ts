@@ -5,10 +5,10 @@ import { GameState } from "src/game-states/entities/game-state.entity";
 
 @Entity()
 export class GameRoom {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column()
+  @Column({ unsigned: true })
   fk_creator_player_id: number;
 
   @Column({ length: 6 })

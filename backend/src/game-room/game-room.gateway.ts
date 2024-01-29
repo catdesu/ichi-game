@@ -87,7 +87,7 @@ export class GameRoomGateway {
         isCreator: isCreator,
         username: player.username,
       };
-      if (!this.sessions.get(player.gameRoom.code).players.includes(sessionPlayer)) {
+      if (!this.sessions.get(player.gameRoom.code).players.find(thisPlayer => thisPlayer.username === player.username)) {
         sessionPlayer.handCards = player.hand_cards;
         this.sessions.get(player.gameRoom.code).players.push(sessionPlayer);
       }
