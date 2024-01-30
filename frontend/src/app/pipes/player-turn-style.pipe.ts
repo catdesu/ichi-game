@@ -1,11 +1,12 @@
 import { Pipe, PipeTransform } from '@angular/core';
+import { TurnOrderInterface } from '../interfaces/turn-order.interface';
 
 @Pipe({
   name: 'playerTurnStyle'
 })
 export class PlayerTurnStylePipe implements PipeTransform {
 
-  transform(username: unknown, turnOrder: { username: string, isPlayerTurn: boolean, hasDrawnThisTurn: boolean }[]): object {
+  transform(username: unknown, turnOrder: TurnOrderInterface[]): object {
     let filter = { 'filter': 'none' };
 
     if (turnOrder.length > 0) {

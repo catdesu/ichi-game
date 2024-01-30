@@ -29,7 +29,7 @@ export class ChallengeDialogService {
   }
 
   openChalengeDialog(username: string, card: string): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
+    return new Promise<boolean>(resolve => {
       const ref = this.dialogService.open(ChallengeDialogComponent, {
         width: '400px',
         closable: false,

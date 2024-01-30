@@ -36,10 +36,10 @@ export class AuthService {
    * Logs in a player and generates an access token for authentication.
    * 
    * @param {Player} player - The player object to generate the access token for.
-   * @returns {Object} An object containing the generated access token.
+   * @returns {Promise<{ access_token: string }>} The token object if validation is successful.
    */
   @UseGuards(LocalAuthGuard)
-  async login(player: Player) {
+  async login(player: Player): Promise<{ access_token: string }> {
     const payload = { username: player.username, userId: player.id };
 
     return {

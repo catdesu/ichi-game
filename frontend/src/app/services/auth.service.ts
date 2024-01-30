@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { AuthPlayerInterface } from '../interfaces/auth.player.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment.development';
@@ -21,12 +20,12 @@ export class AuthService {
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, loginDto);
   }
 
-  authenticate(token: string) {
+  authenticate(token: string): void {
     this.sessionStorageService.set('ichi-auth-token', token);
     this.isUserLoggedIn.next(true);
   }
 
-  unauthenticate() {
+  unauthenticate(): void {
     this.isUserLoggedIn.next(false);
     this.sessionStorageService.remove('ichi-auth-token');
   }

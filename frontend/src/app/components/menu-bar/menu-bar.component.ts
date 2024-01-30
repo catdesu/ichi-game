@@ -11,7 +11,7 @@ import { WebsocketService } from 'src/app/services/websocket.service';
 })
 export class MenuBarComponent implements OnInit {
   isAuthenticated: boolean = false;
-  username: string = '';
+  username?: string = '';
 
   constructor(
     private readonly authService: AuthService,
@@ -19,7 +19,7 @@ export class MenuBarComponent implements OnInit {
     private readonly router: Router,
     private readonly websocketService: WebsocketService,
   ) {
-    this.authService.isUserLoggedIn.subscribe((value) => {
+    this.authService.isUserLoggedIn.subscribe((value: boolean) => {
       this.isAuthenticated = value;
       if (value)
         this.username = this.jwtService.getJWTData()?.username;
@@ -31,7 +31,7 @@ export class MenuBarComponent implements OnInit {
     this.username = this.jwtService.getJWTData()?.username;
   }
 
-  logout() {
+  logout(): void {
     this.authService.unauthenticate();
     this.websocketService.disconnect();
     this.router.navigate(['auth', 'login']);

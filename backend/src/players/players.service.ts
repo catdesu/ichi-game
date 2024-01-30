@@ -62,19 +62,19 @@ export class PlayersService {
       where: { username: createPlayerDto.username }
     });
 
-    if (!playerExists) {
-      const player = new Player();
-  
-      player.username = createPlayerDto.username;
-      player.password = await this.hashPassword(createPlayerDto.password);
-  
-      try {
-        return await this.playerRepository.save(player);
-      } catch (error) {
-        throw new BadRequestException('Registration failed.');
-      }
-    } else {
+    if (playerExists) {
       throw new BadRequestException('Username already taken.');
+    }
+
+    const player = new Player();
+
+    player.username = createPlayerDto.username;
+    player.password = await this.hashPassword(createPlayerDto.password);
+
+    try {
+      return await this.playerRepository.save(player);
+    } catch (error) {
+      throw new BadRequestException('Registration failed.');
     }
   }
 

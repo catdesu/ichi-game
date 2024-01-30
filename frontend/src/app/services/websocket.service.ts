@@ -8,8 +8,11 @@ import { PlayerInterface } from '../interfaces/player.interface';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { GameInterface } from '../interfaces/game.interface';
+import { StartGameInterface } from '../interfaces/start-game.interface';
 import { PlayerTurnInterface } from '../interfaces/player-turn.interface';
+import { PlayerCardsInterface } from '../interfaces/player-cards.interface';
+import { VoteResultInterface } from '../interfaces/vote-result.interface';
+import { ChallengeInterface } from '../interfaces/challenge.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -17,14 +20,14 @@ import { PlayerTurnInterface } from '../interfaces/player-turn.interface';
 export class WebsocketService {
   private serverUrl: string = `${environment.apiUrl}/game-room`;
   private socket?: Socket;
+  public defaultVoteResult = {resume: 0, wait: 0};
+  public defaultChallenge = {username: '', previousCard: ''};
   public players = new BehaviorSubject<PlayerInterface[]>([]);
   public joined = new BehaviorSubject<boolean>(false);
   public started = new BehaviorSubject<boolean>(false);
   public code = new BehaviorSubject<string>('');
   public playerHand = new BehaviorSubject<string[]>([]);
-  public playerCards = new BehaviorSubject<
-    { username: string; cardsCount: number }[]
-  >([]);
+  public playerCards = new BehaviorSubject<PlayerCardsInterface[]>([]);
   public playedCard = new BehaviorSubject<string>('');
   public playableCards = new BehaviorSubject<string[]>([]);
   public turnOrder = new BehaviorSubject<PlayerTurnInterface[]>([]);
@@ -33,8 +36,8 @@ export class WebsocketService {
   public direction = new BehaviorSubject<boolean>(true);
   public pause = new BehaviorSubject<boolean>(false);
   public vote = new BehaviorSubject<boolean>(false);
-  public voteResult = new BehaviorSubject<{resume: number, wait: number}>({resume: 0, wait: 0});
-  public challenge = new BehaviorSubject<{username: string, previousCard: string}>({username: '', previousCard: ''});
+  public voteResult = new BehaviorSubject<VoteResultInterface>(this.defaultVoteResult);
+  public challenge = new BehaviorSubject<ChallengeInterface>(this.defaultChallenge);
 
   constructor(
     private readonly sessionsService: SessionStorageService,
@@ -53,12 +56,8 @@ export class WebsocketService {
       },
     });
 
+    this.socket.on('connect', () => console.log('Connected'));
     this.socket.on('invalid-token', () => this.handleInvalidToken());
-
-    this.socket.on('connect', () => {
-      console.log('connected');
-    });
-
     this.socket.on('create-response', (data) => this.handleCreateGame(data));
     this.socket.on('join-response', (data) => this.handleJoinGame(data));
     this.socket.on('leave-response', (data) => this.handleLeaveGame(data));
@@ -71,11 +70,11 @@ export class WebsocketService {
     this.socket.on('ask-challenge', (data) => this.handleAskChallenge(data));
   }
 
-  disconnect() {
+  disconnect(): void {
     this.socket?.disconnect();
   }
 
-  createGame() {
+  createGame(): void {
     const playerId = this.jwtService.getPlayerId();
 
     if (playerId) {
@@ -85,13 +84,13 @@ export class WebsocketService {
     }
   }
 
-  handleCreateGame(data: any) {
+  handleCreateGame(data: any): void {
     this.joined.next(data.joined);
     this.code.next(data.code);
     this.players.next(data.players);
   }
 
-  joinGame(code: string) {
+  joinGame(code: string): void {
     const playerId = this.jwtService.getPlayerId();
 
     if (playerId) {
@@ -102,9 +101,10 @@ export class WebsocketService {
     }
   }
 
-  handleJoinGame(data: any) {
+  handleJoinGame(data: any): void {
     if (data.status && data.status === 'error') {
       this.toastrService.error(data.message);
+      return;
     }
 
     this.pause.next(data.pause);
@@ -121,7 +121,7 @@ export class WebsocketService {
     this.direction.next(data.direction);
   }
 
-  leaveGame() {
+  leaveGame(): void {
     const playerId = this.jwtService.getPlayerId();
 
     if (playerId) {
@@ -132,7 +132,7 @@ export class WebsocketService {
     }
   }
 
-  handleLeaveGame(data: any) {
+  handleLeaveGame(data: any): void {
     if (data) {
       this.players.next(data.players);
     } else {
@@ -140,19 +140,19 @@ export class WebsocketService {
     }
   }
 
-  handleInvalidToken() {
+  handleInvalidToken(): void {
     this.authService.unauthenticate();
     this.toastrService.error('You are not logged in');
     this.router.navigate(['auth', 'login']);
   }
 
-  startGame() {
+  startGame(): void {
     this.socket?.emit('start', {
       code: this.code.value,
     });
   }
 
-  handleStartGame(data: GameInterface) {
+  handleStartGame(data: StartGameInterface): void {
     this.playerHand.next(data.hand_cards);
     this.playedCard.next(data.played_card);
     this.playerCards.next(data.player_cards);
@@ -162,7 +162,7 @@ export class WebsocketService {
     this.direction.next(data.direction);
   }
 
-  playCard(cardName: string, cardToRemoveIndex: number, chosenColor?: string) {
+  playCard(cardName: string, cardToRemoveIndex: number, chosenColor?: string): void {
     const playCard: any = {
       card: cardName,
       cardIndex: cardToRemoveIndex,
@@ -190,11 +190,11 @@ export class WebsocketService {
     this.direction.next(data.direction);
   }
 
-  drawCard() {
+  drawCard(): void {
     this.socket?.emit('draw-card');
   }
 
-  handleDrawCard(data: any) {
+  handleDrawCard(data: any): void {
     if (data.hand_cards) {
       this.playerHand.next(data.hand_cards);
     }
@@ -208,7 +208,7 @@ export class WebsocketService {
     this.direction.next(data.direction);
   }
 
-  handleGameResult(data: any) {
+  handleGameResult(data: any): void {
     if (data.winner) {
       this.winner.next(data.winner);
     }
@@ -216,12 +216,12 @@ export class WebsocketService {
     this.message.next(data.message);
   }
 
-  handlePause(data: any) {
+  handlePause(data: any): void {
     this.pause.next(data.pause);
     this.vote.next(data.vote);
   }
 
-  voteFor(vote: string) {
+  voteFor(vote: string): void {
     const code = this.code.value;
     const voteMessage = {
       vote, code,
@@ -229,7 +229,7 @@ export class WebsocketService {
     this.socket?.emit('vote', voteMessage);
   }
 
-  handleVoteFor(data: any) {
+  handleVoteFor(data: any): void {
     this.voteResult.next(data.voteResult);
 
     if (data.players) {
@@ -253,20 +253,19 @@ export class WebsocketService {
     }
   }
 
-  handleAskChallenge(data: {username: string, previousCard: string}) {
+  handleAskChallenge(data: ChallengeInterface): void {
     this.challenge.next(data);
   }
   
-  challengePlayer(isChallenging: boolean) {
+  challengePlayer(isChallenging: boolean): void {
     this.socket?.emit('challenge', { isChallenging });
   }
 
-  partialResetState() {
+  partialResetState(): void {
     this.started.next(false);
     this.playerHand.next([]);
     this.playedCard.next('');
     this.playerCards.next([]);
-    this.started.next(false);
     this.playableCards.next([]);
     this.turnOrder.next([]);
     this.winner.next('');
@@ -274,27 +273,14 @@ export class WebsocketService {
     this.direction.next(true);
     this.pause.next(false);
     this.vote.next(false);
-    this.voteResult.next({resume: 0, wait: 0});
-    this.challenge.next({username: '', previousCard: ''});
+    this.voteResult.next(this.defaultVoteResult);
+    this.challenge.next(this.defaultChallenge);
   }
 
-  resetState() {
+  resetState(): void {
     this.code.next('');
     this.players.next([]);
     this.joined.next(false);
-    this.started.next(false);
-    this.playerHand.next([]);
-    this.playedCard.next('');
-    this.playerCards.next([]);
-    this.started.next(false);
-    this.playableCards.next([]);
-    this.turnOrder.next([]);
-    this.winner.next('');
-    this.message.next('');
-    this.direction.next(true);
-    this.pause.next(false);
-    this.vote.next(false);
-    this.voteResult.next({resume: 0, wait: 0});
-    this.challenge.next({username: '', previousCard: ''});
+    this.partialResetState();
   }
 }

@@ -3,8 +3,11 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Tooltip } from 'primeng/tooltip';
+import { ChallengeInterface } from 'src/app/interfaces/challenge.interface';
+import { PlayerCardsInterface } from 'src/app/interfaces/player-cards.interface';
 import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
 import { PlayerInterface } from 'src/app/interfaces/player.interface';
+import { VoteResultInterface } from 'src/app/interfaces/vote-result.interface';
 import { ChallengeDialogService } from 'src/app/services/challenge-dialog.service';
 import { ColorDialogService } from 'src/app/services/color-dialog.service';
 import { JwtService } from 'src/app/services/jwt.service';
@@ -44,7 +47,7 @@ export class GameRoomComponent implements OnInit {
   public code: string = '';
   public players: PlayerInterface[] = [];
   public playerHand: string[] = [];
-  public playerCards: { username: string; cardsCount: number }[] = [];
+  public playerCards: PlayerCardsInterface[] = [];
   public playedCard: string = '';
   public playableCards: string[] = [];
   public turnOrder: PlayerTurnInterface[] = [];
@@ -55,8 +58,8 @@ export class GameRoomComponent implements OnInit {
   public direction: boolean = false;
   public pause: boolean = false;
   public vote: boolean = false;
-  public voteResult: {resume: number, wait: number} = { resume: 0, wait: 0 };
-  public challenge: {username: string, previousCard: string} = {username: '', previousCard: ''};
+  public voteResult: VoteResultInterface = this.websocketService.defaultVoteResult;
+  public challenge: ChallengeInterface = this.websocketService.defaultChallenge;
 
   constructor(
     private readonly websocketService: WebsocketService,
@@ -132,12 +135,7 @@ export class GameRoomComponent implements OnInit {
     
     this.websocketService.pause.subscribe((pause) => {
       this.pause = pause;
-
-      if (pause) {
-        this.show = true;
-      } else {
-        this.show = false;
-      }
+      this.show = pause ? pause : false;
     });
     
     this.websocketService.vote.subscribe((vote) => {
@@ -158,11 +156,11 @@ export class GameRoomComponent implements OnInit {
     });
   }
 
-  createGame() {
+  createGame(): void {
     this.websocketService.createGame();
   }
 
-  joinGame() {
+  joinGame(): void {
     if (this.joinGameForm.invalid) {
       this.joinGameForm.get('code')?.markAsDirty;
       return;
@@ -172,15 +170,15 @@ export class GameRoomComponent implements OnInit {
     this.websocketService.joinGame(code);
   }
 
-  leaveGame() {
+  leaveGame(): void {
     this.websocketService.leaveGame();
   }
 
-  startGame() {
+  startGame(): void {
     this.websocketService.startGame();
   }
 
-  async copyCode() {
+  async copyCode(): Promise<void> {
     await navigator.clipboard.writeText(this.code);
     this.tooltipText = 'Copied to clipboard!';
     this.tooltip.activate();
@@ -191,27 +189,30 @@ export class GameRoomComponent implements OnInit {
     }, 2000);
   }
 
-  async playCard(cardName: string, cardToRemoveIndex: number) {
-    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn && !this.pause) {
-      if (this.playableCards.includes(cardName)) {
-        if (['changeColorW', 'draw4W'].includes(cardName)) {
-          const chosenColor = await this.colorDialogService.openColorDialog();
-          const newCardName = cardName.replace(/W$/, chosenColor);
-          this.websocketService.playCard(newCardName, cardToRemoveIndex);
-        } else {
-          this.websocketService.playCard(cardName, cardToRemoveIndex);
-        }
-      }
+  async playCard(cardName: string, cardToRemoveIndex: number): Promise<void> {
+    if (!this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn || this.pause) {
+      return;
     }
+    
+    if (!this.playableCards.includes(cardName)) {
+      return;
+    }
+
+    if (['changeColorW', 'draw4W'].includes(cardName)) {
+      const chosenColor = await this.colorDialogService.openColorDialog();
+      cardName = cardName.replace(/W$/, chosenColor);
+    }
+
+    this.websocketService.playCard(cardName, cardToRemoveIndex);
   }
 
-  drawCard() {
+  drawCard(): void {
     if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
       this.websocketService.drawCard();
     }
   }
 
-  voteFor(vote: string) {
+  voteFor(vote: string): void {
     this.websocketService.voteFor(vote);
   }
 }

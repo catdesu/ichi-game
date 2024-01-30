@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { jwtDecode } from 'jwt-decode';
 import { SessionStorageService } from './session-storage.service';
+import { JWTInterface } from '../interfaces/jwt.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -11,22 +12,22 @@ export class JwtService {
   getJWTData() {
     const token = this.sessionStorageService.get('ichi-auth-token');
 
-    if (token !== null) {
-      try {
-        return jwtDecode<any>(token);
-      } catch (e) {
-        return;
-      }
+    if (token === null) return;
+    
+    try {
+      return jwtDecode<JWTInterface>(token);
+    } catch (e) {
+      return;
     }
   }
 
-  getPlayerId(): number|null {
+  getPlayerId(): number | undefined {
     const jwtData = this.getJWTData();
-    return jwtData !== undefined ? jwtData.userId : null;
+    return jwtData?.userId;
   }
 
-  getUsername(): string|null {
+  getUsername(): string | undefined {
     const jwtData = this.getJWTData();
-    return jwtData !== undefined ? jwtData.username : null;
+    return jwtData?.username;
   }
 }
