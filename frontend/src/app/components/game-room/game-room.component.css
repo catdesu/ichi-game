@@ -279,316 +279,254 @@
 /* RED */
 .zeroR {
   background: url(/assets/images/cards-front/zeroR.png) center/cover;
-  
 }
 
 .oneR {
   background: url(/assets/images/cards-front/oneR.png) center/cover;
-  
 }
 
 .twoR {
   background: url(/assets/images/cards-front/twoR.png) center/cover;
-  
 }
 
 .threeR {
   background: url(/assets/images/cards-front/threeR.png) center/cover;
-  
 }
 
 .fourR {
   background: url(/assets/images/cards-front/fourR.png) center/cover;
-  
 }
 
 .fiveR {
   background: url(/assets/images/cards-front/fiveR.png) center/cover;
-  
 }
 
 .sixR {
   background: url(/assets/images/cards-front/sixR.png) center/cover;
-  
 }
 
 .sevenR {
   background: url(/assets/images/cards-front/sevenR.png) center/cover;
-  
 }
 
 .eightR {
   background: url(/assets/images/cards-front/eightR.png) center/cover;
-  
 }
 
 .nineR {
   background: url(/assets/images/cards-front/nineR.png) center/cover;
-  
 }
 
 .skipR {
   background: url(/assets/images/cards-front/skipR.png) center/cover;
-  
 }
 
 .reverseR {
   background: url(/assets/images/cards-front/reverseR.png) center/cover;
-  
 }
 
 .draw2R {
   background: url(/assets/images/cards-front/draw2R.png) center/cover;
-  
 }
 
 .draw4R {
   background: url(/assets/images/cards-front/draw4R.png) center/cover;
-  
 }
 
 .changeColorR {
   background: url(/assets/images/cards-front/changeColorR.png) center/cover;
-  
 }
 
 /* BLUE */ 
 .zeroB {
   background: url(/assets/images/cards-front/zeroB.png) center/cover;
-  
 }
 
 .oneB {
   background: url(/assets/images/cards-front/oneB.png) center/cover;
-  
 }
 
 .twoB {
   background: url(/assets/images/cards-front/twoB.png) center/cover;
-  
 }
 
 .threeB {
   background: url(/assets/images/cards-front/threeB.png) center/cover;
-  
 }
 
 .fourB {
   background: url(/assets/images/cards-front/fourB.png) center/cover;
-  
 }
 
 .fiveB {
   background: url(/assets/images/cards-front/fiveB.png) center/cover;
-  
 }
 
 .sixB {
   background: url(/assets/images/cards-front/sixB.png) center/cover;
-  
 }
 
 .sevenB {
   background: url(/assets/images/cards-front/sevenB.png) center/cover;
-  
 }
 
 .eightB {
   background: url(/assets/images/cards-front/eightB.png) center/cover;
-  
 }
 
 .nineB {
   background: url(/assets/images/cards-front/nineB.png) center/cover;
-  
 }
 
 .skipB {
   background: url(/assets/images/cards-front/skipB.png) center/cover;
-  
 }
 
 .reverseB {
   background: url(/assets/images/cards-front/reverseB.png) center/cover;
-  
 }
 
 .draw2B {
   background: url(/assets/images/cards-front/draw2B.png) center/cover;
-  
 }
 
 .draw4B {
   background: url(/assets/images/cards-front/draw4B.png) center/cover;
-  
 }
 
 .changeColorB {
   background: url(/assets/images/cards-front/changeColorB.png) center/cover;
-  
 }
 
 /* GREEN */
 .zeroG {
   background: url(/assets/images/cards-front/zeroG.png) center/cover;
-  
 }
 
 .oneG {
   background: url(/assets/images/cards-front/oneG.png) center/cover;
-  
 }
 
 .twoG {
   background: url(/assets/images/cards-front/twoG.png) center/cover;
-  
 }
 
 .threeG {
   background: url(/assets/images/cards-front/threeG.png) center/cover;
-  
 }
 
 .fourG {
   background: url(/assets/images/cards-front/fourG.png) center/cover;
-  
 }
 
 .fiveG {
   background: url(/assets/images/cards-front/fiveG.png) center/cover;
-  
 }
 
 .sixG {
   background: url(/assets/images/cards-front/sixG.png) center/cover;
-  
 }
 
 .sevenG {
   background: url(/assets/images/cards-front/sevenG.png) center/cover;
-  
 }
 
 .eightG {
   background: url(/assets/images/cards-front/eightG.png) center/cover;
-  
 }
 
 .nineG {
   background: url(/assets/images/cards-front/nineG.png) center/cover;
-  
 }
 
 .skipG {
   background: url(/assets/images/cards-front/skipG.png) center/cover;
-  
 }
 
 .reverseG {
   background: url(/assets/images/cards-front/reverseG.png) center/cover;
-  
 }
 
 .draw2G {
   background: url(/assets/images/cards-front/draw2G.png) center/cover;
-  
 }
 
 .draw4G {
   background: url(/assets/images/cards-front/draw4G.png) center/cover;
-  
 }
 
 .changeColorG {
   background: url(/assets/images/cards-front/changeColorG.png) center/cover;
-  
 }
 
 /* YELLOW */
 .zeroY {
   background: url(/assets/images/cards-front/zeroY.png) center/cover;
-  
 }
 
 .oneY {
   background: url(/assets/images/cards-front/oneY.png) center/cover;
-  
 }
 
 .twoY {
   background: url(/assets/images/cards-front/twoY.png) center/cover;
-  
 }
 
 .threeY {
   background: url(/assets/images/cards-front/threeY.png) center/cover;
-  
 }
 
 .fourY {
   background: url(/assets/images/cards-front/fourY.png) center/cover;
-  
 }
 
 .fiveY {
   background: url(/assets/images/cards-front/fiveY.png) center/cover;
-  
 }
 
 .sixY {
   background: url(/assets/images/cards-front/sixY.png) center/cover;
-  
 }
 
 .sevenY {
   background: url(/assets/images/cards-front/sevenY.png) center/cover;
-  
 }
 
 .eightY {
   background: url(/assets/images/cards-front/eightY.png) center/cover;
-  
 }
 
 .nineY {
   background: url(/assets/images/cards-front/nineY.png) center/cover;
-  
 }
 
 .skipY {
   background: url(/assets/images/cards-front/skipY.png) center/cover;
-  
 }
 
 .reverseY {
   background: url(/assets/images/cards-front/reverseY.png) center/cover;
-  
 }
 
 .draw2Y {
   background: url(/assets/images/cards-front/draw2Y.png) center/cover;
-  
 }
 
 .draw4Y {
   background: url(/assets/images/cards-front/draw4Y.png) center/cover;
-  
 }
 
 .changeColorY {
   background: url(/assets/images/cards-front/changeColorY.png) center/cover;
-  
 }
 
 /* SPECIAL */
 .draw4W {
   background: url(/assets/images/cards-front/draw4W.png) center/cover;
-  
 }
 
 .changeColorW {
   background: url(/assets/images/cards-front/changeColorW.png) center/cover;
-  
 }
 
 .pi.pi-copy {
