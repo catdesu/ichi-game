@@ -10,6 +10,7 @@ import { GameStatesModule } from './game-states/game-states.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
