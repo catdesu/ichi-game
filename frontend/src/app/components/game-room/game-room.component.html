@@ -75,10 +75,10 @@
         <div id="player" [style]="username | playerTurnStyle: turnOrder">
             (You) ({{ playerHand.length }})
             <div class="player_hand">
-                <div *ngFor="let card of playerHand; let i = index" ngClass="card {{ card }}"
+                <div *ngFor="let card of playerHand; let i = index" ngClass="card"
                     [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing"
                     (click)="playCard(card, i)">
-                    <div class="bckg"></div>
+                    <div class="bckg"><img [src]="'assets/images/cards-front/'+card+'.png'" loading="lazy" [alt]="card+' card'"></div>
                 </div>
             </div>
         </div>
@@ -89,23 +89,23 @@
             <div class="player_hand">
                 <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)"
                     class="card turned">
-                    <div class="bckg"></div>
+                    <div class="bckg"><img [src]="'assets/images/card-back.png'" loading="lazy" [alt]="'Card back'"></div>
                 </div>
             </div>
         </div>
         <div id="piles_area">
-            <div id="direction" [class.reverse]="direction"></div>
+            <div id="direction"><img [class.reverse]="direction" [src]="'assets/images/direction.svg'" [alt]="'Direction arrow'"></div>
             <div id="draw_pile">
                 <div class="card turned top-card" (click)="drawCard()">
-                    <div class="bckg"></div>
+                    <div class="bckg"><img [src]="'assets/images/card-back.png'" loading="lazy" [alt]="'Card back'"></div>
                 </div>
                 <div class="card turned pile">
-                    <div class="bckg"></div>
+                    <div class="bckg"><img [src]="'assets/images/card-back.png'" loading="lazy" [alt]="'Card back'"></div>
                 </div>
             </div>
             <div id="discard_pile">
-                <div class="card top-card {{ playedCard }}">
-                    <div class="bckg"></div>
+                <div class="card top-card">
+                    <div class="bckg"><img [src]="'assets/images/cards-front/'+playedCard+'.png'" loading="lazy" [alt]="playedCard+' card'"></div>
                 </div>
                 <div class="card pile">
                     <div class="bckg"></div>
