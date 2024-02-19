@@ -200,6 +200,7 @@ export class GameRoomComponent implements OnInit {
 
     if (['changeColorW', 'draw4W'].includes(cardName)) {
       const chosenColor = await this.colorDialogService.openColorDialog();
+      if (!chosenColor) return;
       cardName = cardName.replace(/W$/, chosenColor);
     }
 

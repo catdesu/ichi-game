@@ -1,3 +1,3 @@
 export const environment = {
-    apiUrl: 'https://noobill.ch:3000'
+    apiUrl: 'http://localhost:3000'
 };

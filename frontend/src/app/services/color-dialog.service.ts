@@ -8,15 +8,15 @@ import { DialogService } from 'primeng/dynamicdialog';
 export class ColorDialogService {
   constructor(private dialogService: DialogService) {}
 
-  openColorDialog(): Promise<string> {
-    return new Promise<string>(resolve => {
+  openColorDialog(): Promise<string | undefined> {
+    return new Promise<string | undefined>(resolve => {
       const ref = this.dialogService.open(ColorDialogComponent, {
         header: 'Choose a Color',
         width: '300px',
-        closable: false,
+        closable: true,
       });
 
-      ref.onClose.subscribe((color: string) => {
+      ref.onClose.subscribe((color?: string) => {
         resolve(color);
       });
     });
