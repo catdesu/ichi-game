@@ -1,8 +1,8 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ToastrService } from 'ngx-toastr';
 import { Tooltip } from 'primeng/tooltip';
+import { Subject, fromEvent, takeUntil } from 'rxjs';
 import { ChallengeInterface } from 'src/app/interfaces/challenge.interface';
 import { PlayerCardsInterface } from 'src/app/interfaces/player-cards.interface';
 import { PlayerTurnInterface } from 'src/app/interfaces/player-turn.interface';
@@ -32,6 +32,7 @@ import { WebsocketService } from 'src/app/services/websocket.service';
 })
 export class GameRoomComponent implements OnInit {
   @ViewChild(Tooltip) tooltip!: Tooltip;
+  private unsubscriber : Subject<void> = new Subject<void>();
   joinGameForm: FormGroup = new FormGroup({
     code: new FormControl(null, [
       Validators.required,
@@ -69,6 +70,15 @@ export class GameRoomComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    history.pushState(null, '');
+
+    fromEvent(window, 'popstate').pipe(
+      takeUntil(this.unsubscriber)
+    ).subscribe((_) => {
+      history.pushState(null, '');
+      console.log(`You can't make changes or go back at this time.`);
+    });
+
     this.websocketService.connect();
 
     this.username = this.jwtService.getUsername()!;
@@ -154,6 +164,11 @@ export class GameRoomComponent implements OnInit {
         this.websocketService.challengePlayer(isChallenging);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscriber.next();
+    this.unsubscriber.complete();
   }
 
   createGame(): void {
