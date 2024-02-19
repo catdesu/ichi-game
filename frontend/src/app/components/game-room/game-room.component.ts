@@ -150,7 +150,7 @@ export class GameRoomComponent implements OnInit {
       this.challenge = challenge;
 
       if (challenge.username !== '' && challenge.previousCard !== '') {
-        const isChallenging = await this.challengeDialogService.openChalengeDialog(challenge.username, challenge.previousCard);
+        const isChallenging = await this.challengeDialogService.openChallengeDialog(challenge.username, challenge.previousCard);
         this.websocketService.challengePlayer(isChallenging);
       }
     });

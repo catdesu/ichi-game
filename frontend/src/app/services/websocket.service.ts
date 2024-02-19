@@ -259,6 +259,7 @@ export class WebsocketService {
   
   challengePlayer(isChallenging: boolean): void {
     this.socket?.emit('challenge', { isChallenging });
+    this.challenge.next(this.defaultChallenge);
   }
 
   partialResetState(): void {
