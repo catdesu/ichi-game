@@ -752,7 +752,7 @@ export class GameRoomGateway {
     const playerTurnOrder = gameState.turn_order[playerTurnOrderIndex];
     let topCard = gameState.discard_pile[0];
 
-    if (!playerTurnOrder.isPlayerTurn && playerTurnOrder.hasDrawnThisTurn) {
+    if (!playerTurnOrder.isPlayerTurn || playerTurnOrder.hasDrawnThisTurn) {
       return;
     }
 
