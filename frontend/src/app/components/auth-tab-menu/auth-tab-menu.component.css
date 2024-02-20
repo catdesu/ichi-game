@@ -1,0 +1,8 @@
+:host ::ng-deep .p-tabmenuitem, :host ::ng-deep .p-tabmenuitem .p-menuitem-link { 
+  width: 100%;
+}
+
+:host ::ng-deep .p-tabmenuitem .p-menuitem-link {
+  display: flex;
+  justify-content: center;
+}

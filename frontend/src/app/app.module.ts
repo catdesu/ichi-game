@@ -24,6 +24,8 @@ import { DialogService, DynamicDialogModule } from 'primeng/dynamicdialog';
 import { GetCardSpacingPipe } from './pipes/get-card-spacing.pipe';
 import {TooltipModule} from 'primeng/tooltip';
 import { ChallengeDialogComponent } from './components/challenge-dialog/challenge-dialog.component';
+import { AuthTabMenuComponent } from './components/auth-tab-menu/auth-tab-menu.component';
+import { TabMenuModule } from 'primeng/tabmenu';
 
 @NgModule({
   declarations: [
@@ -37,6 +39,7 @@ import { ChallengeDialogComponent } from './components/challenge-dialog/challeng
     ColorDialogComponent,
     GetCardSpacingPipe,
     ChallengeDialogComponent,
+    AuthTabMenuComponent,
   ],
   imports: [
     BrowserModule,
@@ -57,7 +60,8 @@ import { ChallengeDialogComponent } from './components/challenge-dialog/challeng
     MenubarModule,
     TableModule,
     DynamicDialogModule,
-    TooltipModule
+    TooltipModule,
+    TabMenuModule,
   ],
   providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }, DialogService],
   bootstrap: [AppComponent]

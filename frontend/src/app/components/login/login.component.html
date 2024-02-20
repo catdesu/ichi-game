@@ -1,69 +1,63 @@
-<div class="card" class="h-full w-full flex flex-column align-items-center">
-    <p-card [style]="{ width: '25rem' }">
-        <h2 class="text-center">Login Here</h2>
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full">
-            <div class="field" [ngClass]="{ 'ng-invalid': loginForm.controls['username'].invalid }">
-                <span class="p-float-label">
-                    <input type="text" id="username" formControlName="username" pInputText [style]="{ width: '100%' }"
-                        [class.valid]="
-              loginForm.get('username')?.valid &&
-              (loginForm.get('username')?.dirty ||
-                loginForm.get('username')?.touched)
-            " [class.invalid]="
-              loginForm.get('username')?.invalid &&
-              (loginForm.get('username')?.dirty ||
-                loginForm.get('username')?.touched)
-            " />
-                    <label for="username">Username</label>
-                </span>
-                <div *ngIf="
-            loginForm.get('username')?.invalid &&
-            loginForm.get('username')?.errors &&
-            (loginForm.get('username')?.dirty ||
-              loginForm.get('username')?.touched)
-          ">
-                    <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('required')">
-                        This field is required.
-                    </small>
-                    <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('minlength')">
-                        The minimum length for this field is 3
-                    </small>
-                    <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('maxlength')">
-                        The maximum length for this field is 30
-                    </small>
-                </div>
-            </div>
-            <div class="field pt-2" [ngClass]="{ 'ng-invalid': loginForm.controls['password'].invalid }">
-                <span class="p-float-label">
-                    <input type="password" id="password" formControlName="password" pInputText
-                        [style]="{ width: '100%' }" [class.valid]="
-              loginForm.get('password')?.valid &&
-              (loginForm.get('password')?.dirty ||
-                loginForm.get('password')?.touched)
-            " [class.invalid]="
-              loginForm.get('password')?.invalid &&
-              (loginForm.get('password')?.dirty ||
-                loginForm.get('password')?.touched)
-            " />
-                    <label for="password">Password</label>
-                </span>
-                <div *ngIf="
-            loginForm.get('password')?.invalid &&
-            loginForm.get('password')?.errors &&
-            (loginForm.get('password')?.dirty ||
-              loginForm.get('password')?.touched)
-          ">
-                    <small class="p-error block" *ngIf="loginForm.get('password')?.hasError('required')">
-                        This field is required.
-                    </small>
-                    <small class="p-error block" *ngIf="loginForm.get('password')?.hasError('minlength')">
-                        The minimum length for this field is 8
-                    </small>
-                </div>
-            </div>
-            <p-button type="submit" [disabled]="loginForm.invalid" styleClass="w-full mt-2" label="Login"></p-button>
-        </form>
-        <span class="hr-sect">OR</span>
-        <p-button type="button" routerLink="/auth/register" styleClass="w-full" label="Register"></p-button>
-    </p-card>
-</div>
+<h2 class="text-center">Login Here</h2>
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="w-full">
+    <div class="field" [ngClass]="{ 'ng-invalid': loginForm.controls['username'].invalid }">
+        <span class="p-float-label">
+            <input type="text" id="username" formControlName="username" pInputText [style]="{ width: '100%' }"
+                [class.valid]="
+        loginForm.get('username')?.valid &&
+        (loginForm.get('username')?.dirty ||
+        loginForm.get('username')?.touched)
+    " [class.invalid]="
+        loginForm.get('username')?.invalid &&
+        (loginForm.get('username')?.dirty ||
+        loginForm.get('username')?.touched)
+    " />
+            <label for="username">Username</label>
+        </span>
+        <div *ngIf="
+    loginForm.get('username')?.invalid &&
+    loginForm.get('username')?.errors &&
+    (loginForm.get('username')?.dirty ||
+        loginForm.get('username')?.touched)
+    ">
+            <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('required')">
+                This field is required.
+            </small>
+            <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('minlength')">
+                The minimum length for this field is 3
+            </small>
+            <small class="p-error block" *ngIf="loginForm.get('username')?.hasError('maxlength')">
+                The maximum length for this field is 30
+            </small>
+        </div>
+    </div>
+    <div class="field pt-2" [ngClass]="{ 'ng-invalid': loginForm.controls['password'].invalid }">
+        <span class="p-float-label">
+            <input type="password" id="password" formControlName="password" pInputText
+                [style]="{ width: '100%' }" [class.valid]="
+        loginForm.get('password')?.valid &&
+        (loginForm.get('password')?.dirty ||
+        loginForm.get('password')?.touched)
+    " [class.invalid]="
+        loginForm.get('password')?.invalid &&
+        (loginForm.get('password')?.dirty ||
+        loginForm.get('password')?.touched)
+    " />
+            <label for="password">Password</label>
+        </span>
+        <div *ngIf="
+    loginForm.get('password')?.invalid &&
+    loginForm.get('password')?.errors &&
+    (loginForm.get('password')?.dirty ||
+        loginForm.get('password')?.touched)
+    ">
+            <small class="p-error block" *ngIf="loginForm.get('password')?.hasError('required')">
+                This field is required.
+            </small>
+            <small class="p-error block" *ngIf="loginForm.get('password')?.hasError('minlength')">
+                The minimum length for this field is 8
+            </small>
+        </div>
+    </div>
+    <p-button type="submit" [disabled]="loginForm.invalid" styleClass="w-full mt-2" label="Login"></p-button>
+</form>
