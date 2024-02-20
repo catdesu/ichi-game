@@ -95,7 +95,7 @@
         </div>
         <div id="piles_area">
             <div id="direction"><img [class.reverse]="direction" [src]="'assets/images/direction.svg'" [alt]="'Direction arrow'"></div>
-            <div id="draw_pile">
+            <div id="draw_pile" [style]="username | playerTurnStyle: turnOrder">
                 <div class="card turned top-card" (click)="drawCard()">
                     <div class="bckg"><img [src]="'assets/images/card-back.png'" loading="lazy" [alt]="'Card back'"></div>
                 </div>
