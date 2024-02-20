@@ -73,7 +73,7 @@
 <div class="game" *ngIf="joined && started">
     <div class="game-field {{fieldColor}} perspective red">
         <div id="player" [style]="username | playerTurnStyle: turnOrder">
-            (You) ({{ playerHand.length }})
+            {{ getPlayerTurnUsername() === username ? 'It\'s your turn!' : '(You)' }} ({{ playerHand.length }})
             <div class="player_hand">
                 <div *ngFor="let card of playerHand; let i = index" ngClass="card"
                     [style]="card | cardStyle: playableCards" [style.left]="i | getCardSpacing"
@@ -85,7 +85,7 @@
         <div *ngFor="let player of playerCards; let i = index"
             [id]="playerCards.length === 1 ? playerPos[1] : playerPos[i]"
             [style]="player.username| playerTurnStyle: turnOrder">
-            {{ player.username }} ({{ player.cardsCount }})
+            {{ getPlayerTurnUsername() === player.username ? 'It\'s '+player.username+'\'s turn!' : player.username }} ({{ player.cardsCount }})
             <div class="player_hand">
                 <div *ngFor="let index of [].constructor(player.cardsCount <= 7 ? player.cardsCount : 7)"
                     class="card turned">

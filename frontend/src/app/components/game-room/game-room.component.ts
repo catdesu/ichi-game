@@ -205,7 +205,7 @@ export class GameRoomComponent implements OnInit {
   }
 
   async playCard(cardName: string, cardToRemoveIndex: number): Promise<void> {
-    if (!this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn || this.pause) {
+    if (!this.isPlayerTurn() || this.pause) {
       return;
     }
     
@@ -223,12 +223,20 @@ export class GameRoomComponent implements OnInit {
   }
 
   drawCard(): void {
-    if (this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn) {
+    if (this.isPlayerTurn()) {
       this.websocketService.drawCard();
     }
   }
 
   voteFor(vote: string): void {
     this.websocketService.voteFor(vote);
+  }
+
+  isPlayerTurn() {
+    return !!this.turnOrder.find((player) => player.username === this.username)?.isPlayerTurn;
+  }
+  
+  getPlayerTurnUsername() {
+    return this.turnOrder.find((player) => player.isPlayerTurn)?.username;
   }
 }
